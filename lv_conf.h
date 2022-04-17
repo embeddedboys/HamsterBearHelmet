@@ -1,6 +1,6 @@
 /**
  * @file lv_conf.h
- * Configuration file for v8.3.0-dev
+ * Configuration file for v8.2.0
  */
 
 /*
@@ -156,9 +156,6 @@
 /*-------------
  * GPU
  *-----------*/
-
-/*Use Arm's 2D acceleration library Arm-2D */
-#define LV_USE_GPU_ARM2D 0
 
 /*Use STM32's DMA2D (aka Chrom Art) GPU*/
 #define LV_USE_GPU_STM32_DMA2D 0
@@ -644,7 +641,7 @@
 #define LV_USE_FFMPEG  0
 #if LV_USE_FFMPEG
     /*Dump input information to stderr*/
-    #define LV_FFMPEG_DUMP_FORMAT 0
+    #define LV_FFMPEG_AV_DUMP_FORMAT 0
 #endif
 
 /*-----------
@@ -659,15 +656,6 @@
 
 /*1: Enable grid navigation*/
 #define LV_USE_GRIDNAV  0
-
-/*1: Enable lv_obj fragment*/
-#define LV_USE_FRAGMENT 0
-
-/*1: Support using images as font in label or span widgets */
-#define LV_USE_IMGFONT 0
-
-/*1: Enable a published subscriber based messaging system */
-#define LV_USE_MSG 0
 
 /*==================
 * EXAMPLES
