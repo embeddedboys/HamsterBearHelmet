@@ -1,15 +1,15 @@
 /**
- * @file lv_port_indev_templ.c
+ * @file lv_port_indev_linux.c
  *
  */
 
 /*Copy this file as "lv_port_indev.c" and set this value to "1" to enable content*/
-#if 0
+#if 1
 
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_port_indev_template.h"
+#include "lv_port_indev_linux.h"
 #include "../../lvgl.h"
 
 /*********************
@@ -19,6 +19,12 @@
 /**********************
  *      TYPEDEFS
  **********************/
+typedef enum {
+	HAMSTERBEAR_KEY_PRE,
+	HAMSTERBEAR_KEY_NEXT,
+	HAMSTERBEAR_KEY_OK,
+	HAMSTERBEAR_KEY_BACK,
+}hamsterbear_keys_enum_t;
 
 /**********************
  *  STATIC PROTOTYPES

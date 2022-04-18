@@ -1,15 +1,15 @@
 /**
- * @file lv_port_disp_templ.c
+ * @file lv_port_disp_linux.c
  *
  */
 
 /*Copy this file as "lv_port_disp.c" and set this value to "1" to enable content*/
-#if 0
+#if 1
 
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_port_disp_template.h"
+#include "lv_port_disp_linux.h"
 #include "../../lvgl.h"
 
 /*********************
@@ -19,6 +19,25 @@
 /**********************
  *      TYPEDEFS
  **********************/
+ /* Framebuffer info */
+typedef struct
+{
+    int fd_fb;
+    unsigned char *fb_base;
+
+    struct fb_var_screeninfo fb_var;
+} fbdev_struct;
+
+/* Lcd info */
+typedef struct
+{
+    int width;
+    int height;
+    int screen_size;
+    int line_width;
+    int bpp;
+    int pixel_width;
+} screen_struct;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -32,6 +51,10 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 /**********************
  *  STATIC VARIABLES
  **********************/
+static fbdev_struct fbdev_info;  /* framebuffer */
+struct fb_fix_screeninfo finfo;
+
+static screen_struct screen_info;    /* scree */
 
 /**********************
  *      MACROS
@@ -74,9 +97,9 @@ void lv_port_disp_init(void)
      */
 
     /* Example for 1) */
-    static lv_disp_draw_buf_t draw_buf_dsc_1;
-    static lv_color_t buf_1[MY_DISP_HOR_RES * 10];                          /*A buffer for 10 rows*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
+    //static lv_disp_draw_buf_t draw_buf_dsc_1;
+    //static lv_color_t buf_1[MY_DISP_HOR_RES * 10];                          /*A buffer for 10 rows*/
+    //lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
 
     /* Example for 2) */
     static lv_disp_draw_buf_t draw_buf_dsc_2;
@@ -85,11 +108,11 @@ void lv_port_disp_init(void)
     lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
 
     /* Example for 3) also set disp_drv.full_refresh = 1 below*/
-    static lv_disp_draw_buf_t draw_buf_dsc_3;
-    static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*A screen sized buffer*/
-    static lv_color_t buf_3_2[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*Another screen sized buffer*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_3, buf_3_1, buf_3_2,
-                          MY_DISP_VER_RES * LV_VER_RES_MAX);   /*Initialize the display buffer*/
+    //static lv_disp_draw_buf_t draw_buf_dsc_3;
+    //static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*A screen sized buffer*/
+    //static lv_color_t buf_3_2[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*Another screen sized buffer*/
+    //lv_disp_draw_buf_init(&draw_buf_dsc_3, buf_3_1, buf_3_2,
+    //                      MY_DISP_VER_RES * LV_VER_RES_MAX);   /*Initialize the display buffer*/
 
     /*-----------------------------------
      * Register the display in LVGL
@@ -101,8 +124,8 @@ void lv_port_disp_init(void)
     /*Set up the functions to access to your display*/
 
     /*Set the resolution of the display*/
-    disp_drv.hor_res = 480;
-    disp_drv.ver_res = 320;
+    disp_drv.hor_res = 280;
+    disp_drv.ver_res = 240;
 
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = disp_flush;
@@ -130,6 +153,44 @@ void lv_port_disp_init(void)
 static void disp_init(void)
 {
     /*You code here*/
+    fbdev_info.fd_fb = open(DEFAULT_LINUX_FB_PATH, O_RDWR);
+    if(fbdev_info.fd_fb < 0)
+    {
+        handle_error("can not open framebuffer");
+    }
+    printf("Successfully opened framebuffer.\n");
+    /* already get fd_fb */
+    if(ioctl(fbdev_info.fd_fb, FBIOGET_VSCREENINFO, &fbdev_info.fb_var) < 0)
+    {
+        handle_error("can not ioctl");
+    }
+	if (ioctl(fbdev_info.fd_fb,FBIOGET_FSCREENINFO, &finfo))
+	 {
+		  handle_error("Error reading fixed information/n");
+	 }
+    /* already get the var screen info */
+    screen_info.width = fbdev_info.fb_var.xres;
+    screen_info.height = fbdev_info.fb_var.yres;
+    screen_info.bpp = fbdev_info.fb_var.bits_per_pixel;
+    screen_info.line_width = fbdev_info.fb_var.xres * fbdev_info.fb_var.bits_per_pixel / 8;
+    screen_info.pixel_width = fbdev_info.fb_var.bits_per_pixel / 8;
+    screen_info.screen_size = fbdev_info.fb_var.xres * fbdev_info.fb_var.yres * fbdev_info.fb_var.bits_per_pixel / 8;
+
+    printf("screen info:\n Resolution:\t%dx%d\n Bits per pixel:\t%d\n",
+           screen_info.width,screen_info.height,screen_info.bpp);
+	printf("frame buffer size:%d\n", finfo.smem_len);
+	
+    /* mmap the fb_base */
+    fbdev_info.fb_base = (unsigned char *)mmap(NULL, screen_info.screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fbdev_info.fd_fb, 0);
+    if(fbdev_info.fb_base == (unsigned char *) -1)
+    {
+        handle_error("can not mmap frame buffer");
+    }
+    /* alreay get the start addr of framebuffer */
+    printf("Successfully get the start address of framebuffer.\n");
+    memset(fbdev_info.fb_base, 0x0, screen_info.screen_size); /* clear the screen */
+    printf("Successfully clear the screen.\n");
+
 }
 
 /*Flush the content of the internal buffer the specific area on the display
@@ -145,6 +206,8 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
         for(x = area->x1; x <= area->x2; x++) {
             /*Put a pixel to the display. For example:*/
             /*put_px(x, y, *color_p)*/
+			memcpy(fbdev_info.fb_base + x * screen_info.pixel_width + y * screen_info.line_width,
+                   &color_p->full, sizeof(lv_color_t));
             color_p++;
         }
     }

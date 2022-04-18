@@ -1,14 +1,5 @@
-
-/**
- * @file lv_port_indev_templ.h
- *
- */
-
-/*Copy this file as "lv_port_indev.h" and set this value to "1" to enable content*/
-#if 0
-
-#ifndef LV_PORT_INDEV_TEMPL_H
-#define LV_PORT_INDEV_TEMPL_H
+#ifndef __NATIVE_DEVICE_H
+#define __NATIVE_DEVICE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,11 +8,17 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-#include "lvgl/lvgl.h"
 
 /*********************
  *      DEFINES
  *********************/
+#ifndef DEVICE_HAMSTERBEAR
+#define DEVICE_HAMSTERBEAR 1
+#endif
+
+#ifndef DEVICE_PC
+#define DEVICE_PC 0
+#endif
 
 /**********************
  *      TYPEDEFS
@@ -30,8 +27,7 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void lv_port_indev_init(void);
-
+ 
 /**********************
  *      MACROS
  **********************/
@@ -40,6 +36,5 @@ void lv_port_indev_init(void);
 } /*extern "C"*/
 #endif
 
-#endif /*LV_PORT_INDEV_TEMPL_H*/
 
-#endif /*Disable/Enable content*/
+#endif
