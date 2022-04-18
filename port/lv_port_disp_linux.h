@@ -16,13 +16,16 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
- #include <linux/fb.h>
 #include "lvgl/lvgl.h"
 
 /*********************
  *      DEFINES
  *********************/
  #define DEFAULT_LINUX_FB_PATH "/dev/fb0"
+ #define MY_DISP_HOR_RES (280)
+/* error handler */
+#define handle_error(msg) do {perror(msg);exit(-1);} \
+    while(0)
 
 /**********************
  *      TYPEDEFS

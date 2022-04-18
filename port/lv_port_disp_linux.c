@@ -9,8 +9,23 @@
 /*********************
  *      INCLUDES
  *********************/
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+
+
+#include <linux/fb.h>
 #include "lv_port_disp_linux.h"
-#include "../../lvgl.h"
+#include "../lvgl/lvgl.h"
 
 /*********************
  *      DEFINES
@@ -131,7 +146,7 @@ void lv_port_disp_init(void)
     disp_drv.flush_cb = disp_flush;
 
     /*Set a display buffer*/
-    disp_drv.draw_buf = &draw_buf_dsc_1;
+    disp_drv.draw_buf = &draw_buf_dsc_2;
 
     /*Required for Example 3)*/
     //disp_drv.full_refresh = 1

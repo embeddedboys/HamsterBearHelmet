@@ -9,8 +9,23 @@
 /*********************
  *      INCLUDES
  *********************/
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+
+#include <linux/input.h>
+
 #include "lv_port_indev_linux.h"
-#include "../../lvgl.h"
+#include "../lvgl/lvgl.h"
 
 /*********************
  *      DEFINES

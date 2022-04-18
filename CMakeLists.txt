@@ -5,9 +5,9 @@ project(my_lvgl)
 SET(CROSS_COMPILE 1)
 set(CMAKE_SYSTEM_NAME Linux)
 
-set(CMAKE_C_COMPILER "/home/book/bonbon/mkrootfs/buildroot-2021.02.3/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
+set(CMAKE_C_COMPILER "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
 
-SET(TOOLCHAIN_DIR "/home/book/bonbon/mkrootfs/buildroot-2021.02.3/output/host/bin/")
+SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
