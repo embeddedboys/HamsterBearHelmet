@@ -24,7 +24,7 @@ struct js_event {
 	unsigned char  number;    /* axis/button number */	
 };
 
-//全局变量通过互斥体访问
+
 static unsigned char g_InputEvent;
 
 static pthread_mutex_t g_tMutex  = PTHREAD_MUTEX_INITIALIZER;

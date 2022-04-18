@@ -11,8 +11,8 @@ SET(TOOLCHAIN_DIR "/home/book/bonbon/mkrootfs/buildroot-2021.02.3/output/host/bi
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
-file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*h" )
-file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" )
+file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" )
+file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" "port/*.c" )
 set(CMAKE_BUILD_TYPE "Release")
 set(WARINGS "-Wall -Wextra \
                                                 -Wshadow -Wundef -Wmaybe-uninitialized -Wmissing-prototypes -Wno-discarded-qualifiers \
