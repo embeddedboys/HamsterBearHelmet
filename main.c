@@ -65,7 +65,7 @@
 //#define DISP_BUF_SIZE LV_HOR_RES_MAX * LV_VER_RES_MAX   /* LVGL DISP_BUF_SIZE */
 
 #ifndef SYSTEM_RESPONSE_TIME
-#define SYSTEM_RESPONSE_TIME 5  /* Default to 5 milliseconds to keep the system responsive */
+#define SYSTEM_RESPONSE_TIME 3  /* Default to 5 milliseconds to keep the system responsive */
 #endif
 
 
@@ -312,6 +312,7 @@ int main(void)
 {
     lv_init();
 	lv_port_disp_init();
+	lv_port_indev_init();
 
 /*    
     lv_indev_drv_t indev_drv;

@@ -3,265 +3,124 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <pthread.h>
+#include <stdint.h>
+#include <poll.h>
+#include <errno.h>
+#include <linux/joystick.h>
+#include "joypad_input.h"
 
-#define JOYPAD_DEV "/dev/joypad"
-#define USB_JS_DEV "/dev/input/js0"
 
 
-typedef struct JoypadInput{
-	int (*DevInit)(void);
-	int (*DevExit)(void);
-	int (*GetJoypad)(void);
-	struct JoypadInput *ptNext;
-	pthread_t tTreadID;     /* 子线程ID */
-}T_JoypadInput, *PT_JoypadInput;
+static struct js_event g_JsEvent;
 
-struct js_event {		
-	unsigned int   time;      /* event timestamp in milliseconds */		
-	unsigned short value;     /* value */		
-	unsigned char  type;      /* event type */		
-	unsigned char  number;    /* axis/button number */	
+struct joypad_device {
+	uint16_t buttons_state;
+	uint16_t axis_state;
+	uint32_t combined_state;
+	
+	struct js_event jsevent;
 };
 
+struct joypad_key{
+	uint8_t num;
+	uint8_t state:1;
+};
 
-static unsigned char g_InputEvent;
-
-static pthread_mutex_t g_tMutex  = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  g_tConVar = PTHREAD_COND_INITIALIZER;
-
-static int joypad_fd;
 static int USBjoypad_fd;
-static PT_JoypadInput g_ptJoypadInputHead;
 
-
-static void *InputEventTreadFunction(void *pVoid)
+uint32_t USBjoypad_process_event(struct js_event *pjs_event)
 {
-	/* 定义函数指针 */
-	int (*GetJoypad)(void);
-	GetJoypad = (int (*)(void))pVoid;
+	
+	uint16_t buttons_state = 0;
+	uint16_t axis_state = 0;
+	uint32_t combined_state = 0;
 
-	while (1)
-	{
-		//因为有阻塞所以没有输入时是休眠
-		g_InputEvent = GetJoypad();
-		//有数据时唤醒
-		pthread_mutex_lock(&g_tMutex);
-		/*  唤醒主线程 */
-		pthread_cond_signal(&g_tConVar);
-		pthread_mutex_unlock(&g_tMutex);
-	}
-}
+	int pjs_event_type = pjs_event->type;
+	uint32_t last_base;
 
-static int RegisterJoypadInput(PT_JoypadInput ptJoypadInput)
-{
-	PT_JoypadInput tmp;
-	if(ptJoypadInput->DevInit())
-	{
-		return -1;
-	}
-	//初始化成功创建子线程 将子项的GetInputEvent 传进来
-	pthread_create(&ptJoypadInput->tTreadID, NULL, InputEventTreadFunction, (void*)ptJoypadInput->GetJoypad);
-	if(! g_ptJoypadInputHead)
-	{
-		g_ptJoypadInputHead = ptJoypadInput;
-	}
-	else
-	{
-		tmp = g_ptJoypadInputHead;
-		while(tmp->ptNext)
-		{
-			tmp = tmp->ptNext;
+	pjs_event_type = pjs_event_type & ~JS_EVENT_INIT;
+
+	//printf("pjs_event_type : %d\n", pjs_event_type);
+	
+
+	switch(pjs_event_type){
+	case JS_EVENT_BUTTON:
+		
+		if(pjs_event->value)
+			buttons_state |= (1 << pjs_event->number);
+		else
+			buttons_state &= ~(1 << pjs_event->number);
+		break;
+		
+	case JS_EVENT_AXIS:	
+		if(pjs_event->value != 0){
+			//printf("%d, %d\n", pjs_event->number,pjs_event->number + (int)(pjs_event->value>0?2:0));
+			axis_state |= (1 << ((pjs_event->value>0?2:0) + pjs_event->number));
+			//last_base = (pjs_event->value>0)?2:0;
 		}
-		tmp->ptNext = ptJoypadInput;
+		else
+			axis_state &= ~(1 << ((pjs_event->value>0?2:0) + pjs_event->number));			
+		
+		break;
+		
+	default:
+		
+		break;
+		
 	}
-	ptJoypadInput->ptNext = NULL;
-	return 0;
+
+	//printf("buttons : %d, axis : %d\n", buttons_state, axis_state);
+	return (combined_state=(axis_state << 16 | buttons_state));
 }
 
-static int joypadGet(void)
+/*
+void USBjoypad_sig_handler(int signal)
 {
-	return read(joypad_fd, 0, 0);
+	while(read(USBjoypad_fd, &g_JsEvent,
+            				  sizeof(struct js_event)) > 0)
+            
+    USBjoypad_probe_event();
+	
 }
+*/
 
-static int joypadDevInit(void)
-{
-	joypad_fd = open(JOYPAD_DEV, O_RDONLY);
-	if(-1 == joypad_fd)
-	{
-		printf("%s dev not found \r\n", JOYPAD_DEV);
-		return -1;
+static uint32_t USBjoypadGet(void)
+{	
+	uint32_t state;
+	
+	while(read(USBjoypad_fd, &g_JsEvent, sizeof(struct js_event)) > 0){
+		state = USBjoypad_process_event(&g_JsEvent);
+		break;
 	}
-	return 0;
-}
-
-static int joypadDevExit(void)
-{
-	close(joypad_fd);
-	return 0;
-}
-
-static T_JoypadInput joypadInput = {
-	joypadDevInit,
-	joypadDevExit,
-	joypadGet,
-};
-
-static int USBjoypadGet(void)
-{
-	/**
-	 * FC手柄 bit 键位对应关系 真实手柄中有一个定时器，处理 连A  连B 
-	 * 0  1   2       3       4    5      6     7
-	 * A  B   Select  Start  Up   Down   Left  Right
-	 */
-	//因为 USB 手柄每次只能读到一位键值 所以要有静态变量保存上一次的值
-	static unsigned char joypad = 0;
-	struct js_event e;
-	if(0 < read (USBjoypad_fd, &e, sizeof(e)))
-	{
-		if(0x2 == e.type)
-		{
-			/*
-			上：
-			value:0x8001 type:0x2 number:0x5
-			value:0x0 type:0x2 number:0x5
-			*/
-			if(0x8001 == e.value && 0x5 == e.number)
-			{
-				joypad |= 1<<4;
-			}
-			
-			/*下：
-			value:0x7fff type:0x2 number:0x5
-			value:0x0 type:0x2 number:0x5
-			*/
-			if(0x7fff == e.value && 0x5 == e.number)
-			{
-				joypad |= 1<<5;
-			}
-			//松开
-			if(0x0 == e.value && 0x5 == e.number)
-			{
-				joypad &= ~(1<<4 | 1<<5);
-			}
-			
-			/*左：
-			value:0x8001 type:0x2 number:0x4
-			value:0x0 type:0x2 number:0x4
-			*/
-			if(0x8001 == e.value && 0x4 == e.number)
-			{
-				joypad |= 1<<6;
-			}
-			
-			/*右：
-			value:0x7fff type:0x2 number:0x4
-			value:0x0 type:0x2 number:0x4
-			*/
-			if(0x7fff == e.value && 0x4 == e.number)
-			{
-				joypad |= 1<<7;
-			}
-			//松开
-			if(0x0 == e.value && 0x4 == e.number)
-			{
-				joypad &= ~(1<<6 | 1<<7);
-			}
-		}
-
-		if(0x1 == e.type)
-		{
-			/*选择：
-			value:0x1 type:0x1 number:0xa
-			value:0x0 type:0x1 number:0xa
-			*/
-			if(0x1 == e.value && 0xa == e.number)
-			{
-				joypad |= 1<<2;
-			}
-			if(0x0 == e.value && 0xa == e.number)
-			{
-				joypad &= ~(1<<2);
-			}
-			
-			/*开始：
-			value:0x1 type:0x1 number:0xb
-			value:0x0 type:0x1 number:0xb
-			*/
-			if(0x1 == e.value && 0xb == e.number)
-			{
-				joypad |= 1<<3;
-			}
-			if(0x0 == e.value && 0xb == e.number)
-			{
-				joypad &= ~(1<<3);
-			}
-
-			/*A
-			value:0x1 type:0x1 number:0x0
-			value:0x0 type:0x1 number:0x0
-			*/
-			if(0x1 == e.value && 0x0 == e.number)
-			{
-				joypad |= 1<<0;
-			}
-			if(0x0 == e.value && 0x0 == e.number)
-			{
-				joypad &= ~(1<<0);
-			}
-
-			/*B
-			value:0x1 type:0x1 number:0x1
-			value:0x0 type:0x1 number:0x1
-			*/
-			if(0x1 == e.value && 0x1 == e.number)
-			{
-				joypad |= 1<<1;
-			}
-			if(0x0 == e.value && 0x1 == e.number)
-			{
-				joypad &= ~(1<<1);
-			}
-
-			/*X
-			value:0x1 type:0x1 number:0x3
-			value:0x0 type:0x1 number:0x3
-			*/
-			if(0x1 == e.value && 0x3 == e.number)
-			{
-				joypad |= 1<<0;
-			}
-			if(0x0 == e.value && 0x3 == e.number)
-			{
-				joypad &= ~(1<<0);
-			}
-
-			/*Y
-			value:0x1 type:0x1 number:0x4
-			value:0x0 type:0x1 number:0x4
-		 	*/
-		 	if(0x1 == e.value && 0x4 == e.number)
-			{
-				joypad |= 1<<1;
-			}
-			if(0x0 == e.value && 0x4 == e.number)
-			{
-				joypad &= ~(1<<1);
-			}
-		}
-		return joypad;
+	/* EAGAIN is returned when the queue is empty */
+	if (errno != EAGAIN) {
+		/* error */
 	}
-	return -1;
+
+	return state;
 }
 
 static int USBjoypadDevInit(void)
 {
-	USBjoypad_fd = open(USB_JS_DEV, O_RDONLY);
+	int flag;	/* fcntl flag */
+	
+	/* device open */
+	printf("%s, device open\n", DEFAULT_USB_JOYPAD_PATH);
+	USBjoypad_fd = open(DEFAULT_USB_JOYPAD_PATH, O_RDONLY);
 	if(-1 == USBjoypad_fd)
 	{
-		printf("%s dev not found \r\n", USB_JS_DEV);
+		printf("%s device not found\n", DEFAULT_USB_JOYPAD_PATH);
 		return -1;
 	}
+	
+	/* device set */
+	
+	//signal(SIGIO, USBjoypad_sig_handler);	/* signal binding */
+	//fcntl(USBjoypad_fd, F_SETOWN, getpid());	/* set the pid that will receive SIGIO  */
+	//flag = fcntl(USBjoypad_fd, F_GETFL);
+	//fcntl(USBjoypad_fd, F_SETFL, flag | FASYNC);
+
+	printf("device init done\n");
 	return 0;
 }
 
@@ -271,28 +130,63 @@ static int USBjoypadDevExit(void)
 	return 0;
 }
 
-static T_JoypadInput usbJoypadInput = {
-	USBjoypadDevInit,
-	USBjoypadDevExit,
-	USBjoypadGet,
-};
+#if 1
 
-int InitJoypadInput(void)
+int
+main(int argc, char **argv)
 {
-	int iErr = 0;
-	//iErr = RegisterJoypadInput(&joypadInput);
-	iErr = RegisterJoypadInput(&usbJoypadInput);
-	return iErr;
-}
+	int ret;
+	uint32_t state;
+	uint16_t buttons;
+	uint16_t axis;
+	
+	uint8_t axis_high;
+	uint8_t axis_low;
+	
+	USBjoypadDevInit();
+	if(ret < 0)
+		return -1;
 
-int GetJoypadInput(void)
-{
-	/* 休眠 */
-	pthread_mutex_lock(&g_tMutex);
-	pthread_cond_wait(&g_tConVar, &g_tMutex);	
+	while(1){
+	
+		state = USBjoypadGet();
 
-	/* 被唤醒后,返回数据 */
-	pthread_mutex_unlock(&g_tMutex);
-	return g_InputEvent;
+		buttons = state & 0xffff;
+		axis = state >> 16;
+		
+		//printf("state: %d, buttons: %d, axis: %d\n", state, buttons, axis);
+		if(state & JOYPAD_KEY_X){
+			printf("key X pressed!\n");
+		}
+		if(state & JOYPAD_KEY_A){
+			printf("key A pressed!\n");
+		}		
+		if(state & JOYPAD_KEY_B){
+			printf("key B pressed!\n");
+		}
+		if(state & JOYPAD_KEY_Y){
+			printf("key Y pressed!\n");
+		}
+		if(state & JOYPAD_KEY_NL){
+			printf("key NL pressed!\n");
+		}
+		if(state & JOYPAD_KEY_NR){
+			printf("key NR pressed!\n");
+		}
+		if(state & JOYPAD_KEY_DOWN){
+			printf("key DOWN pressed!\n");
+		}
+		if(state & JOYPAD_KEY_START){
+			printf("key START pressed!\n");
+		}
+
+
+
+		
+		
+	}
+
+	return 0;
 }
+#endif
 
