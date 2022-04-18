@@ -10,10 +10,12 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
-#include <linux/fb.h>
 #include <linux/input.h>
 
 #include "lvgl/lvgl.h"
+#include "port/lv_port_disp_linux.h"
+#include "port/lv_port_indev_linux.h"
+
 #include "ui/ui.h"
 /*
     Linux frame buffer like /dev/fb0
@@ -28,7 +30,7 @@
 #define handle_error(msg) do {perror(msg);exit(-1);} \
     while(0)
 
-#define DEFAULT_LINUX_FB_PATH "/dev/fb0"
+
 #define DEFAULT_LINUX_TOUCHPAD_PATH "/dev/input/event1"
 
 /*
@@ -71,25 +73,7 @@
 /*******************
 *     TYPEDEF
 ********************/
-/* Framebuffer info */
-typedef struct
-{
-    int fd_fb;
-    unsigned char *fb_base;
 
-    struct fb_var_screeninfo fb_var;
-} fbdev_struct;
-
-/* Lcd info */
-typedef struct
-{
-    int width;
-    int height;
-    int screen_size;
-    int line_width;
-    int bpp;
-    int pixel_width;
-} screen_struct;
 
 
 /* Input device */
@@ -405,22 +389,7 @@ bool my_touchpad_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 int main(void)
 {
     lv_init();
-    my_fb_init();
-    //my_touchpad_init();
-    //
-    static lv_disp_draw_buf_t disp_draw_buf;  /* lvgl display buffer */
-    static lv_color_t buf[DISP_BUF_SIZE];   /* Declare a buffer for 1/10 screen size */
-    static lv_color_t buf2[DISP_BUF_SIZE];
-
-    lv_disp_draw_buf_init(&disp_draw_buf, buf, buf2, DISP_BUF_SIZE);  /* Initialize the display buffer */
-
-    lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.draw_buf = &disp_draw_buf;
-    disp_drv.flush_cb = my_disp_flush;
-    disp_drv.hor_res = 280;
-    disp_drv.ver_res = 240;
-    lv_disp_drv_register(&disp_drv);    /* register display driver */
+	lv_port_disp_init();
 
 /*    
     lv_indev_drv_t indev_drv;
