@@ -53,6 +53,8 @@ lv_obj_t * ui_ImageLine1;
 lv_obj_t * ui_ButtonPre1;
 lv_obj_t * ui_Image11;
 
+extern lv_indev_t * indev_keypad;
+
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16
     #error "LV_COLOR_DEPTH should be 16bit to match SquareLine Studio's settings"
@@ -910,6 +912,15 @@ void ui_init(void)
     lv_disp_set_theme(dispp, theme);
     ui_Screen1_screen_init();
     ui_Sensors_screen_init();
+
+	lv_group_t *g = lv_group_create();
+	lv_group_add_obj(g, ui_ButtonPre);
+	lv_group_add_obj(g, ui_ButtonBack);
+	lv_group_add_obj(g, ui_ButtonNext);
+	lv_group_add_obj(g, ui_ButtonPre1);
+
+	lv_indev_set_group(indev_keypad, g);
+	
     lv_disp_load_scr(ui_Screen1);
 }
 

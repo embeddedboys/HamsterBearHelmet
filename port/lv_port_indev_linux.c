@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <poll.h>
+#include <signal.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,6 +25,7 @@
 #include <sys/mman.h>
 
 #include <linux/input.h>
+#include <linux/joystick.h>
 
 #include "lv_port_indev_linux.h"
 #include "../lvgl/lvgl.h"
@@ -34,12 +37,6 @@
 /**********************
  *      TYPEDEFS
  **********************/
-typedef enum {
-	HAMSTERBEAR_KEY_PRE,
-	HAMSTERBEAR_KEY_NEXT,
-	HAMSTERBEAR_KEY_OK,
-	HAMSTERBEAR_KEY_BACK,
-}hamsterbear_keys_enum_t;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -79,6 +76,28 @@ lv_indev_t * indev_button;
 
 static int32_t encoder_diff;
 static lv_indev_state_t encoder_state;
+
+static uint16_t buttons_state = 0;
+static uint32_t combined_state = 0;
+
+
+static struct js_event g_JsEvent;
+
+struct joypad_device {
+	uint16_t buttons_state;
+	uint16_t axis_state;
+	uint32_t combined_state;
+	
+	struct js_event jsevent;
+};
+
+struct joypad_key{
+	uint8_t num;
+	uint8_t state:1;
+};
+
+static int USBjoypad_fd;
+
 
 /**********************
  *      MACROS
@@ -171,6 +190,7 @@ void lv_port_indev_init(void)
      *and assign this input device to group to navigate in it:
      *`lv_indev_set_group(indev_encoder, group);`*/
 
+	
     /*------------------
      * Button
      * -----------------*/
@@ -293,6 +313,25 @@ static void mouse_get_xy(lv_coord_t * x, lv_coord_t * y)
 static void keypad_init(void)
 {
     /*Your code comes here*/
+	//int flag;	/* fcntl flag */
+	
+	/* device open */
+	printf("%s, device open %s\n", DEFAULT_USB_JOYPAD_PATH, __FILE__);
+	USBjoypad_fd = open(DEFAULT_USB_JOYPAD_PATH, O_RDONLY);
+	if(-1 == USBjoypad_fd)
+	{
+		printf("%s device not found\n", DEFAULT_USB_JOYPAD_PATH);
+	}
+	
+	
+	/* device set */
+	
+	//signal(SIGIO, USBjoypad_sig_handler);	/* signal binding */
+	//fcntl(USBjoypad_fd, F_SETOWN, getpid());	/* set the pid that will receive SIGIO  */
+	//flag = fcntl(USBjoypad_fd, F_GETFL);
+	//fcntl(USBjoypad_fd, F_SETFL, flag | FASYNC);
+
+	printf("device init done\n");
 }
 
 /*Will be called by the library to read the mouse*/
@@ -302,12 +341,13 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 
     /*Get the current x and y coordinates*/
     mouse_get_xy(&data->point.x, &data->point.y);
+	printf("into keypad_read %s\n", __FILE__);
 
     /*Get whether the a key is pressed and save the pressed key*/
     uint32_t act_key = keypad_get_key();
     if(act_key != 0) {
         data->state = LV_INDEV_STATE_PR;
-
+		printf("act_key : %d", act_key);
         /*Translate the keys to LVGL control characters according to your key definitions*/
         switch(act_key) {
             case 1:
@@ -340,6 +380,69 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
+
+	uint32_t key_state = 0;
+	uint16_t axis_state = 0;
+	int js_event_type;
+	printf("into keypad_get_key %s\n", __FILE__);
+	while(read(USBjoypad_fd, &g_JsEvent, sizeof(struct js_event)) > 0){
+		js_event_type = g_JsEvent.type & ~JS_EVENT_INIT;
+		
+		printf("pjs_event_type : %d\n", js_event_type);
+		switch(js_event_type){
+		case JS_EVENT_BUTTON:
+			
+			if(g_JsEvent.value){
+				buttons_state |= (1 << g_JsEvent.number);
+			}
+			else{
+				buttons_state &= ~(1 << g_JsEvent.number);
+			}
+			break;
+			
+		case JS_EVENT_AXIS: 
+			if(g_JsEvent.value != 0){
+				axis_state |= (1 << ((g_JsEvent.value>0?2:0) + g_JsEvent.number));
+			}
+			else{
+				axis_state &= ~(1 << ((g_JsEvent.value>0?2:0) + g_JsEvent.number));			
+			}
+			break;
+			
+		default:
+			
+			break;
+			
+		}
+
+		break;
+	}
+	/* EAGAIN is returned when the queue is empty */
+	if (errno != EAGAIN) {
+		/* error */
+	}
+
+	key_state = (axis_state << 16 | buttons_state);
+
+	if(key_state & JOYPAD_KEY_NL){
+		return 1;
+	}
+	
+	if(key_state & JOYPAD_KEY_NR){
+		return 2;
+	}
+
+	if(key_state & JOYPAD_KEY_LEFT){
+		return 3;
+	}
+
+	if(key_state & JOYPAD_KEY_RIGHT){
+		return 4;
+	}
+
+	if(key_state & JOYPAD_KEY_A){
+		return 5;
+	}
 
     return 0;
 }

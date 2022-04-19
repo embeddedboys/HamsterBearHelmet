@@ -11,8 +11,8 @@ SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
-file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" )
-file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" "port/*.c" )
+file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" "input/*.h")
+file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" "port/*.c" "input/*.c")
 set(CMAKE_BUILD_TYPE "Release")
 set(WARINGS "-Wall -Wextra \
                                                 -Wshadow -Wundef -Wmaybe-uninitialized -Wmissing-prototypes -Wno-discarded-qualifiers \

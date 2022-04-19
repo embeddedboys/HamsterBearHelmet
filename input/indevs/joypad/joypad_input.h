@@ -7,13 +7,7 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
-#define DEVICE_PC 1
-
-#if DEVICE_HAMSTERBEAR
-#define DEFAULT_USB_JOYPAD_PATH "/dev/input/event1"
-#elif DEVICE_PC
 #define DEFAULT_USB_JOYPAD_PATH "/dev/input/js0"
-#endif
 
 #define BIT(x) (1 << x)
 #define JOYPAD_KEY_X BIT(0)
@@ -43,7 +37,9 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
- 
+ int USBjoypadDevInit(void);
+ int USBjoypadDevExit(void);
+ uint32_t USBjoypadGet(void);
 /**********************
  *      MACROS
  **********************/

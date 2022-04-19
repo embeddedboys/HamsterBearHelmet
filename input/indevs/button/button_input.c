@@ -1,3 +1,4 @@
+#if 0
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -6,24 +7,13 @@
 #include <stdint.h>
 #include <poll.h>
 #include <errno.h>
-#include <linux/joystick.h>
-#include "joypad_input.h"
+#include "button_input.h"
 
 static uint16_t buttons_state = 0;
 static uint32_t combined_state = 0;
 
-
-static struct js_event g_JsEvent;
-
-struct joypad_device {
-	uint16_t buttons_state;
-	uint16_t axis_state;
-	uint32_t combined_state;
-	
-	struct js_event jsevent;
-};
-
-struct joypad_key{
+struct adc_key{
+	uint8_t *name;
 	uint8_t num;
 	uint8_t state:1;
 };
@@ -34,21 +24,18 @@ uint32_t USBjoypad_process_event(struct js_event *pjs_event)
 {
 	uint16_t axis_state = 0;
 
-
 	int pjs_event_type = pjs_event->type;
-	//uint32_t last_base;
+	uint32_t last_base;
 
 	pjs_event_type = pjs_event_type & ~JS_EVENT_INIT;
 	//printf("pjs_event_type : %d\n", pjs_event_type);
 	switch(pjs_event_type){
 	case JS_EVENT_BUTTON:
 		
-		if(pjs_event->value){
+		if(pjs_event->value)
 			buttons_state |= (1 << pjs_event->number);
-		}
-		else{
+		else
 			buttons_state &= ~(1 << pjs_event->number);
-		}
 		break;
 		
 	case JS_EVENT_AXIS:	
@@ -57,9 +44,9 @@ uint32_t USBjoypad_process_event(struct js_event *pjs_event)
 			axis_state |= (1 << ((pjs_event->value>0?2:0) + pjs_event->number));
 			//last_base = (pjs_event->value>0)?2:0;
 		}
-		else{
+		else
 			axis_state &= ~(1 << ((pjs_event->value>0?2:0) + pjs_event->number));			
-		}
+		
 		break;
 		
 	default:
@@ -68,7 +55,7 @@ uint32_t USBjoypad_process_event(struct js_event *pjs_event)
 		
 	}
 
-	//printf("buttons : %d, axis : %d\n", buttons_state, axis_state);
+	printf("buttons : %d, axis : %d\n", buttons_state, axis_state);
 	return (combined_state=(axis_state << 16 | buttons_state));
 }
 
@@ -83,13 +70,12 @@ void USBjoypad_sig_handler(int signal)
 }
 */
 
-uint32_t USBjoypadGet(void)
+static uint32_t USBjoypadGet(void)
 {	
-	uint32_t state = 0;
+	uint32_t state;
 	
 	while(read(USBjoypad_fd, &g_JsEvent, sizeof(struct js_event)) > 0){
 		state = USBjoypad_process_event(&g_JsEvent);
-
 		break;
 	}
 	/* EAGAIN is returned when the queue is empty */
@@ -100,9 +86,9 @@ uint32_t USBjoypadGet(void)
 	return state;
 }
 
-int USBjoypadDevInit(void)
+static int USBjoypadDevInit(void)
 {
-	//int flag;	/* fcntl flag */
+	int flag;	/* fcntl flag */
 	
 	/* device open */
 	printf("%s, device open\n", DEFAULT_USB_JOYPAD_PATH);
@@ -110,8 +96,8 @@ int USBjoypadDevInit(void)
 	if(-1 == USBjoypad_fd)
 	{
 		printf("%s device not found\n", DEFAULT_USB_JOYPAD_PATH);
+		return -1;
 	}
-	
 	
 	/* device set */
 	
@@ -124,13 +110,13 @@ int USBjoypadDevInit(void)
 	return 0;
 }
 
-int USBjoypadDevExit(void)
+static int USBjoypadDevExit(void)
 {
 	close(USBjoypad_fd);
 	return 0;
 }
 
-#if 0
+#if 1
 
 int
 main(int argc, char **argv)
@@ -143,7 +129,7 @@ main(int argc, char **argv)
 	uint8_t axis_high;
 	uint8_t axis_low;
 	
-	ret = USBjoypadDevInit();
+	USBjoypadDevInit();
 	if(ret < 0)
 		return -1;
 
@@ -176,13 +162,16 @@ main(int argc, char **argv)
 		if(state & JOYPAD_KEY_DOWN){
 			printf("key DOWN pressed!\n");
 		}
+		
 		if(state & JOYPAD_KEY_START){
 			printf("key START pressed!\n");
 		}
 	
+		
 	}
 
 	return 0;
 }
 #endif
 
+#endif
