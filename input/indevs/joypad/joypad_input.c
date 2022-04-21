@@ -12,7 +12,6 @@
 static uint16_t buttons_state = 0;
 static uint32_t combined_state = 0;
 
-
 static struct js_event g_JsEvent;
 
 struct joypad_device {
