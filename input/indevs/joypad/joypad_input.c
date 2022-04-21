@@ -20,11 +20,6 @@ static struct joypad_data g_joypad_data;
 static pthread_mutex_t g_mutex  = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  g_cond   = PTHREAD_COND_INITIALIZER;
 
-static uint8_t axis_key_readi  = 0;
-static uint8_t axis_key_writei = 0;
-
-static int axis_key_ringbuffer[4];
-
 uint32_t joypad_process_event(struct joypad_data *data)
 {
 
@@ -155,7 +150,7 @@ static int usb_joypad_init(struct joypad_data *pdata)
 	struct joypad_device *pdev = container_of(pdata, struct joypad_device, data);
 
 	/* device open */
-	pr_debug("%s, device open\n", DEFAULT_USB_JOYPAD_PATH);
+	pr_debug("%s, device opening\n", DEFAULT_USB_JOYPAD_PATH);
 	pdata->joypad_fd = open(DEFAULT_USB_JOYPAD_PATH, O_RDONLY);
 	if (-1 == pdata->joypad_fd)
 	{
@@ -219,6 +214,7 @@ static int register_joypad_device(struct joypad_device *pdev)
 	if (pdev->ops.init && pdev->ops.init(&pdev->data))
 	{
 		pr_debug("device init failed, %s\n", pdev->name);
+		return -ENODEV;
 	}
 
 	/* create a thread to read event */
