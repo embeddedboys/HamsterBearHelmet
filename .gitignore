@@ -54,3 +54,4 @@ dkms.conf
 # addons
 build
 demo
+.vscode

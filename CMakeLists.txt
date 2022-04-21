@@ -5,9 +5,9 @@ project(my_lvgl)
 SET(CROSS_COMPILE 1)
 set(CMAKE_SYSTEM_NAME Linux)
 
-set(CMAKE_C_COMPILER "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
-
-SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/")
+# set(CMAKE_C_COMPILER "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
+set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
+# SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
@@ -22,7 +22,7 @@ set(WARINGS "-Wall -Wextra \
                                                 -Wempty-body -Wshift-negative-value -Wstack-usage=2048 \
             -Wtype-limits -Wsizeof-pointer-memaccess -Wpointer-arith")
 SET(CMAKE_C_FLAGS_RELEASE "-static -O3 ${WARINGS}")
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/)
+# SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/)
 
 add_executable(demo main.c ${SOURCES} ${INCLUDES})
 

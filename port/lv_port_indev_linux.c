@@ -313,25 +313,6 @@ static void mouse_get_xy(lv_coord_t * x, lv_coord_t * y)
 static void keypad_init(void)
 {
     /*Your code comes here*/
-	//int flag;	/* fcntl flag */
-	
-	/* device open */
-	printf("%s, device open %s\n", DEFAULT_USB_JOYPAD_PATH, __FILE__);
-	USBjoypad_fd = open(DEFAULT_USB_JOYPAD_PATH, O_RDONLY);
-	if(-1 == USBjoypad_fd)
-	{
-		printf("%s device not found\n", DEFAULT_USB_JOYPAD_PATH);
-	}
-	
-	
-	/* device set */
-	
-	//signal(SIGIO, USBjoypad_sig_handler);	/* signal binding */
-	//fcntl(USBjoypad_fd, F_SETOWN, getpid());	/* set the pid that will receive SIGIO  */
-	//flag = fcntl(USBjoypad_fd, F_GETFL);
-	//fcntl(USBjoypad_fd, F_SETFL, flag | FASYNC);
-
-	printf("device init done\n");
 }
 
 /*Will be called by the library to read the mouse*/
@@ -380,50 +361,8 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
-
-	uint32_t key_state = 0;
-	uint16_t axis_state = 0;
-	int js_event_type;
-	printf("into keypad_get_key %s\n", __FILE__);
-	while(read(USBjoypad_fd, &g_JsEvent, sizeof(struct js_event)) > 0){
-		js_event_type = g_JsEvent.type & ~JS_EVENT_INIT;
-		
-		printf("pjs_event_type : %d\n", js_event_type);
-		switch(js_event_type){
-		case JS_EVENT_BUTTON:
-			
-			if(g_JsEvent.value){
-				buttons_state |= (1 << g_JsEvent.number);
-			}
-			else{
-				buttons_state &= ~(1 << g_JsEvent.number);
-			}
-			break;
-			
-		case JS_EVENT_AXIS: 
-			if(g_JsEvent.value != 0){
-				axis_state |= (1 << ((g_JsEvent.value>0?2:0) + g_JsEvent.number));
-			}
-			else{
-				axis_state &= ~(1 << ((g_JsEvent.value>0?2:0) + g_JsEvent.number));			
-			}
-			break;
-			
-		default:
-			
-			break;
-			
-		}
-
-		break;
-	}
-	/* EAGAIN is returned when the queue is empty */
-	if (errno != EAGAIN) {
-		/* error */
-	}
-
-	key_state = (axis_state << 16 | buttons_state);
-
+    
+    /*
 	if(key_state & JOYPAD_KEY_NL){
 		return 1;
 	}
@@ -442,7 +381,7 @@ static uint32_t keypad_get_key(void)
 
 	if(key_state & JOYPAD_KEY_A){
 		return 5;
-	}
+	}*/
 
     return 0;
 }
