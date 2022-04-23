@@ -7,6 +7,7 @@ extern "C" {
 
 
 void ui_statusbar_init(void);
+void ui_charts_init(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

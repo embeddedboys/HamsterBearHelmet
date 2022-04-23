@@ -331,6 +331,7 @@ int main(void)
     printf("Launching Desktop...\n");
     ui_init();
     ui_statusbar_init();
+    ui_charts_init();
     
     while(1)
     {
