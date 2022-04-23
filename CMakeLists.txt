@@ -24,5 +24,7 @@ set(WARINGS "-Wall -Wextra \
 SET(CMAKE_C_FLAGS_RELEASE "-static -O3 ${WARINGS}")
 # SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/)
 
+link_libraries(pthread)
+
 add_executable(demo main.c ${SOURCES} ${INCLUDES})
 

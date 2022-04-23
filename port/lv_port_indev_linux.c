@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <poll.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,6 +29,7 @@
 #include <linux/joystick.h>
 
 #include "lv_port_indev_linux.h"
+#include "input/indevs/joypad/joypad_input.h"
 #include "../lvgl/lvgl.h"
 
 /*********************
@@ -77,27 +79,8 @@ lv_indev_t * indev_button;
 static int32_t encoder_diff;
 static lv_indev_state_t encoder_state;
 
-static uint16_t buttons_state = 0;
-static uint32_t combined_state = 0;
-
-
-static struct js_event g_JsEvent;
-
-struct joypad_device {
-	uint16_t buttons_state;
-	uint16_t axis_state;
-	uint32_t combined_state;
-	
-	struct js_event jsevent;
-};
-
-struct joypad_key{
-	uint8_t num;
-	uint8_t state:1;
-};
-
-static int USBjoypad_fd;
-
+static pthread_mutex_t g_mutex  = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  g_cond   = PTHREAD_COND_INITIALIZER;
 
 /**********************
  *      MACROS
@@ -205,9 +188,11 @@ void lv_port_indev_init(void)
     indev_button = lv_indev_drv_register(&indev_drv);
 
     /*Assign buttons to points on the screen*/
-    static const lv_point_t btn_points[2] = {
-        {10, 10},   /*Button 0 -> x:10; y:10*/
-        {40, 100},  /*Button 1 -> x:40; y:100*/
+    static const lv_point_t btn_points[4] = {
+        {105, 192},   /*Button 0 -> x:10; y:10*/
+        {175, 190},  /*Button 1 -> x:40; y:100*/
+        {140, 120},
+        {20, 220},
     };
     lv_indev_set_button_points(indev_button, btn_points);
 }
@@ -313,6 +298,13 @@ static void mouse_get_xy(lv_coord_t * x, lv_coord_t * y)
 static void keypad_init(void)
 {
     /*Your code comes here*/
+    int ret;
+
+    ret = joypad_input_init();
+	if (ret < 0){
+        pr_debug("keypad init failed!\n");
+        return;
+    }
 }
 
 /*Will be called by the library to read the mouse*/
@@ -361,8 +353,17 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 static uint32_t keypad_get_key(void)
 {
     /*Your code comes here*/
+  /*
+    uint32_t key_state;
+	struct joypad_data my_jdata;
+
+
+	my_jdata = joypad_input_get_data();
+
+    pr_debug("comb state : %d\n", my_jdata.combined_state);
+
+    key_state = my_jdata.combined_state;
     
-    /*
 	if(key_state & JOYPAD_KEY_NL){
 		return 1;
 	}
@@ -416,11 +417,32 @@ static void encoder_handler(void)
 /*------------------
  * Button
  * -----------------*/
-
+static int button_fd;
+static struct input_event events[2];
+static struct input_event event;
 /*Initialize your buttons*/
+static void *button_input_thread_function(void *privdata)
+{
+    while(1){
+        if(read(button_fd, &events, 2*sizeof(struct input_event)) > 0){
+                printf("type : %d, code : %d, value : %d\n", events[0].type, events[0].code, events[0].value);
+        }
+        event = events[0];
+        // pthread_mutex_lock(&g_mutex);
+        // pthread_cond_signal(&g_cond);
+        // pthread_mutex_unlock(&g_mutex);
+    }
+
+}
+
 static void button_init(void)
 {
     /*Your code comes here*/
+    pthread_t tid;
+
+    button_fd = open("/dev/input/event0", O_RDONLY);
+
+    pthread_create(&tid, NULL, button_input_thread_function, NULL);
 }
 
 /*Will be called by the library to read the button*/
@@ -431,7 +453,7 @@ static void button_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 
     /*Get the pressed button's ID*/
     int8_t btn_act = button_get_pressed_id();
-
+    
     if(btn_act >= 0) {
         data->state = LV_INDEV_STATE_PR;
         last_btn = btn_act;
@@ -447,24 +469,37 @@ static void button_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 /*Get ID  (0, 1, 2 ..) of the pressed button*/
 static int8_t button_get_pressed_id(void)
 {
-    uint8_t i;
+    uint8_t key = -1;
 
     /*Check to buttons see which is being pressed (assume there are 2 buttons)*/
-    for(i = 0; i < 2; i++) {
-        /*Return the pressed button's ID*/
-        if(button_is_pressed(i)) {
-            return i;
-        }
+    // pthread_mutex_lock(&g_mutex);
+    // pthread_cond_wait(&g_cond, &g_mutex);
+    // pthread_mutex_unlock(&g_mutex);
+    switch(event.code){
+    case KEY_LEFT:
+        key = 0;
+        break;
+    case KEY_RIGHT:
+        key = 1;
+        break;
+    case KEY_ENTER:
+        key = 2;
+        break;
+    case KEY_BACKSPACE:
+        key = 3;
+        break;
+    default:
+        key = -1;
+        break;
     }
 
+    return (key + event.value)>key?key:-1;
     /*No button pressed*/
-    return -1;
 }
 
 /*Test if `id` button is pressed or not*/
 static bool button_is_pressed(uint8_t id)
 {
-
     /*Your code comes here*/
 
     return false;

@@ -17,11 +17,11 @@ extern "C" {
 #define JOYPAD_KEY_NL BIT(4)
 #define JOYPAD_KEY_NR BIT(5)
 
-#define JOYPAD_KEY_LEFT   BIT(16)
-#define JOYPAD_KEY_TOP    BIT(17)
+#define JOYPAD_KEY_RIGHT   BIT(16)
+#define JOYPAD_KEY_DOWN    BIT(17)
 
-#define JOYPAD_KEY_RIGHT  BIT(18)
-#define JOYPAD_KEY_DOWN   BIT(19)
+#define JOYPAD_KEY_LEFT  BIT(18)
+#define JOYPAD_KEY_TOP   BIT(19)
 
 
 #define JOYPAD_KEY_SELECT BIT(8)
@@ -74,7 +74,7 @@ struct joypad_operations {
 
 struct joypad_device {
 	uint8_t number;
-    uint8_t *name;
+    char *name;
 	uint8_t type;
 	pthread_t tid;
 
@@ -91,6 +91,9 @@ struct joypad_key{
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
+int joypad_input_init(void);
+int joypad_input_exit(void);
+struct joypad_data joypad_input_get_data(void);
 
 /**********************
  * GLOBAL VALUES

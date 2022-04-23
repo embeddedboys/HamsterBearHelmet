@@ -21,11 +21,21 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
- #define DEFAULT_LINUX_FB_PATH "/dev/fb0"
- #define MY_DISP_HOR_RES (280)
+#define DEFAULT_LINUX_FB_PATH "/dev/fb0"
+#define MY_DISP_HOR_RES (280)
+#define MY_DISP_VER_RES (240)
 /* error handler */
 #define handle_error(msg) do {perror(msg);exit(-1);} \
     while(0)
+
+#ifndef LV_DISP_FILL_METHOD
+/**
+ * 0 - SOFT
+ * 1- DMA
+ */
+
+    #define LV_DISP_FILL_METHOD 0
+#endif
 
 /**********************
  *      TYPEDEFS

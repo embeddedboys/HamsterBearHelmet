@@ -110,6 +110,18 @@ uint32_t joypad_process_event(struct joypad_data *data)
 	return (data->combined_state = (data->axis_state << 16 | data->buttons_state));
 }
 
+static void *joypad_input_thread_function(void *privdata)
+{
+	struct joypad_device *pdev = (struct joypad_device *)privdata;
+
+	while(1){
+		pdev->ops.get_event(&pdev->data);
+		pthread_mutex_lock(&g_mutex);
+		g_joypad_data = pdev->data;
+		pthread_cond_signal(&g_cond);
+		pthread_mutex_unlock(&g_mutex);
+	}
+}
 
 static unsigned int usb_joypad_get_event(struct joypad_data *pdata)
 {
@@ -146,7 +158,6 @@ static unsigned int usb_joypad_get_event(struct joypad_data *pdata)
 
 static int usb_joypad_init(struct joypad_data *pdata)
 {
-	int flag;	/* fcntl flag */
 	struct joypad_device *pdev = container_of(pdata, struct joypad_device, data);
 
 	/* device open */
@@ -167,7 +178,6 @@ static int usb_joypad_exit(struct joypad_data *pdata)
 	if (pdata)
 	{
 		close(pdata->joypad_fd);
-		free(pdata);
 	}
 	pr_debug("device exit done\n");
 	return 0;
@@ -185,19 +195,6 @@ static struct joypad_device joypad_devs[] = {
 		},
 	},
 };
-
-static void *joypad_input_thread_function(void *privdata)
-{
-	struct joypad_device *pdev = (struct joypad_device *)privdata;
-
-	while(1){
-		pdev->ops.get_event(&pdev->data);
-		pthread_mutex_lock(&g_mutex);
-		g_joypad_data = pdev->data;
-		pthread_cond_signal(&g_cond);
-		pthread_mutex_unlock(&g_mutex);
-	}
-}
 
 static int register_joypad_device(struct joypad_device *pdev)
 {
@@ -256,6 +253,13 @@ static int unregister_joypad_devices()
 			pr_debug("device exit failed, %s\n", p_tmp->name);
 		}
 
+		/* thread exit */
+		ret = pthread_cancel(p_tmp->tid);
+		if(ret != 0){
+			pr_debug("thread cancel failed! : %lu\n", p_tmp->tid);
+		}else{
+			pr_debug("thread cancel success! : %lu\n", p_tmp->tid);
+		}
 
 		p_tmp = p_tmp->p_next;
 	}
@@ -264,6 +268,14 @@ static int unregister_joypad_devices()
 	g_pt_joypad_head = NULL;
 
 	return 0;
+}
+
+void joypad_sigint_handler(int signal)
+{
+	/* call unregister_joypad_devices */
+	pthread_mutex_unlock(&g_mutex);
+	unregister_joypad_devices();
+	exit(0);
 }
 
 int joypad_input_init(void)
@@ -277,6 +289,8 @@ int joypad_input_init(void)
 			pr_debug("failed to  register %s\n", joypad_devs[i].name);
 	}
 
+	signal(SIGINT, joypad_sigint_handler);
+
 	return ret;
 }
 
@@ -289,7 +303,7 @@ int joypad_input_exit(void)
 	return ret;
 }
 
-struct joypad_data joypad_input_get_event(void)
+struct joypad_data joypad_input_get_data(void)
 {
 	pthread_mutex_lock(&g_mutex);
 	pthread_cond_wait(&g_cond, &g_mutex);
@@ -298,7 +312,7 @@ struct joypad_data joypad_input_get_event(void)
 	return g_joypad_data;
 }
 
-#if 1
+#if 0
 
 int main(int argc, char **argv)
 {
@@ -315,40 +329,53 @@ int main(int argc, char **argv)
 		return -1;
 
 
+	struct joypad_data my_jdata;
+
 	while (1)
 	{
-		/*
-			state = USBjoypadGet();
-	`
-			buttons = state & 0xffff;
-			axis = state >> 16;
+		my_jdata = joypad_input_get_data();
 
-			printf("state: %d, buttons: %d, axis: %d\n", state, buttons, axis);
-			if(state & JOYPAD_KEY_X){
-				printf("key X pressed!\n");
-			}
-			if(state & JOYPAD_KEY_A){
-				printf("key A pressed!\n");
-			}
-			if(state & JOYPAD_KEY_B){
-				printf("key B pressed!\n");
-			}
-			if(state & JOYPAD_KEY_Y){
-				printf("key Y pressed!\n");
-			}
-			if(state & JOYPAD_KEY_NL){
-				printf("key NL pressed!\n");
-			}
-			if(state & JOYPAD_KEY_NR){
-				printf("key NR pressed!\n");
-			}
-			if(state & JOYPAD_KEY_DOWN){
-				printf("key DOWN pressed!\n");
-			}
-			if(state & JOYPAD_KEY_START){
-				printf("key START pressed!\n");
-			}
-		*/
+		printf("recv data :  %d\n", my_jdata.combined_state);
+		
+		state = my_jdata.combined_state;
+
+		if(state & JOYPAD_KEY_X){
+			printf("key X pressed!\n");
+		}
+		if(state & JOYPAD_KEY_A){
+			printf("key A pressed!\n");
+		}
+		if(state & JOYPAD_KEY_B){
+			printf("key B pressed!\n");
+		}
+		if(state & JOYPAD_KEY_Y){
+			printf("key Y pressed!\n");
+		}
+		if(state & JOYPAD_KEY_NL){
+			printf("key NL pressed!\n");
+		}
+		if(state & JOYPAD_KEY_NR){
+			printf("key NR pressed!\n");
+		}
+		if(state & JOYPAD_KEY_RIGHT){
+			printf("key RIGHT pressed!\n");
+		}
+		if(state & JOYPAD_KEY_DOWN){
+			printf("key DOWN pressed!\n");
+		}
+		if(state & JOYPAD_KEY_LEFT){
+			printf("key LEFT pressed!\n");
+		}
+		if(state & JOYPAD_KEY_TOP){
+			printf("key TOP pressed!\n");
+		}
+		if(state & JOYPAD_KEY_SELECT){
+			printf("key SELECT pressed!\n");
+		}
+		if(state & JOYPAD_KEY_START){
+			printf("key START pressed!\n");
+		}
+		
 	}
 
 	joypad_input_exit();

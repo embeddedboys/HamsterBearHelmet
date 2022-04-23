@@ -17,6 +17,7 @@
 #include "port/lv_port_indev_linux.h"
 
 #include "ui/ui.h"
+#include "ui/ui_handlers/ui_handlers.h"
 /*
     Linux frame buffer like /dev/fb0
     which includes Single-board computers too like Raspberry Pi
@@ -65,7 +66,7 @@
 //#define DISP_BUF_SIZE LV_HOR_RES_MAX * LV_VER_RES_MAX   /* LVGL DISP_BUF_SIZE */
 
 #ifndef SYSTEM_RESPONSE_TIME
-#define SYSTEM_RESPONSE_TIME 3  /* Default to 5 milliseconds to keep the system responsive */
+#define SYSTEM_RESPONSE_TIME 5  /* Default to 5 milliseconds to keep the system responsive */
 #endif
 
 
@@ -327,7 +328,9 @@ int main(void)
 #endif
 */
     /* App here */
+    printf("Launching Desktop...\n");
     ui_init();
+    ui_statusbar_init();
     
     while(1)
     {
