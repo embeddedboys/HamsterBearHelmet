@@ -55,6 +55,7 @@ void ui_statusbar_update_thread_function(void *privdata)
         lv_label_set_text(ui_LabelTime1, time_buf);
 
         /* battery */
+        
 
         /* switch */
         

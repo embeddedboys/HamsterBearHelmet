@@ -425,7 +425,7 @@ static void *button_input_thread_function(void *privdata)
 {
     while(1){
         if(read(button_fd, &events, 2*sizeof(struct input_event)) > 0){
-                printf("type : %d, code : %d, value : %d\n", events[0].type, events[0].code, events[0].value);
+                // printf("type : %d, code : %d, value : %d\n", events[0].type, events[0].code, events[0].value);
         }
         event = events[0];
         // pthread_mutex_lock(&g_mutex);
