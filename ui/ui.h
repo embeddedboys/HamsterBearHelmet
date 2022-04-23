@@ -61,8 +61,6 @@ extern lv_obj_t * ui_Image11;
 extern lv_obj_t * ui_ChartSensorValue;
 extern lv_obj_t * ui_RollerSensors;
 extern lv_obj_t * ui_DropdownSensorUpdateFreq;
-extern lv_obj_t * ui_ButtonSensorUp;
-extern lv_obj_t * ui_Image9;
 extern lv_obj_t * ui_ButtonSensorDown;
 extern lv_obj_t * ui_Image10;
 
@@ -80,7 +78,6 @@ LV_IMG_DECLARE(ui_img_239678910);    // assets\chevron-right.png
 LV_IMG_DECLARE(ui_img_669867669);    // assets\chevron-left.png
 LV_IMG_DECLARE(ui_img_img_line_png);    // assets\img_line.png
 LV_IMG_DECLARE(ui_img_arrow_left_png);    // assets\arrow_left.png
-LV_IMG_DECLARE(ui_img_arrow_up_png);    // assets\arrow_up.png
 LV_IMG_DECLARE(ui_img_arrow_down_png);    // assets\arrow_down.png
 
 

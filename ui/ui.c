@@ -52,8 +52,6 @@ lv_obj_t * ui_Image11;
 lv_obj_t * ui_ChartSensorValue;
 lv_obj_t * ui_RollerSensors;
 lv_obj_t * ui_DropdownSensorUpdateFreq;
-lv_obj_t * ui_ButtonSensorUp;
-lv_obj_t * ui_Image9;
 lv_obj_t * ui_ButtonSensorDown;
 lv_obj_t * ui_Image10;
 
@@ -160,22 +158,6 @@ static void ui_event_ButtonPre1(lv_event_t * e)
     lv_obj_t * ta = lv_event_get_target(e);
     if(event == LV_EVENT_CLICKED) {
         _ui_screen_change(ui_Screen1, LV_SCR_LOAD_ANIM_OVER_LEFT, 150, 0);
-    }
-}
-static void ui_event_ButtonSensorUp(lv_event_t * e)
-{
-    lv_event_code_t event = lv_event_get_code(e);
-    lv_obj_t * ta = lv_event_get_target(e);
-    if(event == LV_EVENT_CLICKED) {
-        _ui_roller_set_property(ui_RollerSensors, _UI_ROLLER_PROPERTY_SELECTED_WITH_ANIM, 0);
-    }
-}
-static void ui_event_Image9(lv_event_t * e)
-{
-    lv_event_code_t event = lv_event_get_code(e);
-    lv_obj_t * ta = lv_event_get_target(e);
-    if(event == LV_EVENT_CLICKED) {
-        _ui_roller_set_property(ui_RollerSensors, _UI_ROLLER_PROPERTY_SELECTED_WITH_ANIM, 0);
     }
 }
 static void ui_event_ButtonSensorDown(lv_event_t * e)
@@ -916,43 +898,6 @@ void ui_Sensors_screen_init(void)
     lv_obj_set_align(ui_DropdownSensorUpdateFreq, LV_ALIGN_CENTER);
 
     lv_obj_add_flag(ui_DropdownSensorUpdateFreq, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-
-    // ui_ButtonSensorUp
-
-    ui_ButtonSensorUp = lv_btn_create(ui_Sensors);
-
-    lv_obj_set_width(ui_ButtonSensorUp, 30);
-    lv_obj_set_height(ui_ButtonSensorUp, 30);
-
-    lv_obj_set_x(ui_ButtonSensorUp, 73);
-    lv_obj_set_y(ui_ButtonSensorUp, 100);
-
-    lv_obj_set_align(ui_ButtonSensorUp, LV_ALIGN_CENTER);
-
-    lv_obj_add_flag(ui_ButtonSensorUp, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    lv_obj_clear_flag(ui_ButtonSensorUp, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_add_event_cb(ui_ButtonSensorUp, ui_event_ButtonSensorUp, LV_EVENT_ALL, NULL);
-    lv_obj_set_style_bg_color(ui_ButtonSensorUp, lv_color_hex(0x2D2D2D), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_ButtonSensorUp, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    // ui_Image9
-
-    ui_Image9 = lv_img_create(ui_ButtonSensorUp);
-    lv_img_set_src(ui_Image9, &ui_img_arrow_up_png);
-
-    lv_obj_set_width(ui_Image9, LV_SIZE_CONTENT);
-    lv_obj_set_height(ui_Image9, LV_SIZE_CONTENT);
-
-    lv_obj_set_x(ui_Image9, -1);
-    lv_obj_set_y(ui_Image9, 1);
-
-    lv_obj_set_align(ui_Image9, LV_ALIGN_CENTER);
-
-    lv_obj_add_flag(ui_Image9, LV_OBJ_FLAG_ADV_HITTEST);
-    lv_obj_clear_flag(ui_Image9, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_add_event_cb(ui_Image9, ui_event_Image9, LV_EVENT_ALL, NULL);
 
     // ui_ButtonSensorDown
 
