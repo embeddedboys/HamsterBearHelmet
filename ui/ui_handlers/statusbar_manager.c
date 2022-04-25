@@ -23,16 +23,26 @@ struct statusbar_state {
 
 extern lv_obj_t *ui_LabelTime;
 extern lv_obj_t *ui_LabelTime1;
+extern lv_obj_t *ui_LabelTime2;
 
-// extern lv_obj_t * ui_LabelBattery;
-// extern lv_obj_t * ui_LabelBattery1;
+extern lv_obj_t *ui_LabelHint;
 
 struct statusbar_state *g_state;
 pthread_t tid_status_bar;
 
+static char *hints[] = {
+    [0] = "Good night",
+    [1] = "Good morning",
+    [2] = "Good afternoon",
+    [3] = "Good evening",
+};
+
+#define USER_NAME "IotaHydrae"
+
 static void *ui_statusbar_update_thread_function( void *privdata )
 {
     char time_buf[10];
+    char hint_buf[48];
     struct statusbar_state *state = ( struct statusbar_state * )privdata;
     
     // state->hour = state->tm_res.tm_hour;
@@ -51,12 +61,17 @@ static void *ui_statusbar_update_thread_function( void *privdata )
                   
         lv_label_set_text( ui_LabelTime, time_buf );
         lv_label_set_text( ui_LabelTime1, time_buf );
+         lv_label_set_text( ui_LabelTime2, time_buf );
         
         /* battery */
         
         /* switch */
+
+        /* Hint */
+        snprintf(hint_buf, sizeof(hint_buf), "%s, %s", hints[state->tm_res.tm_hour / 6], USER_NAME);
+        lv_label_set_text( ui_LabelHint, hint_buf );
         
-        sleep( 60 );
+        sleep( 10 );
     }
     
     return NULL;
