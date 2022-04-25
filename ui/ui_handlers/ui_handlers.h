@@ -9,17 +9,17 @@ extern "C" {
 
 /* ui_handler operations */
 struct ui_handler_ops {
-    int (*init)(void);
-    int (*exit)(void);
-    void (*update)(void);
+    int ( *init )( void );
+    int ( *exit )( void );
+    void ( *update )( void );
 };
 
 struct ui_handler {
     uint32_t id;    /*  */
     char *name;
-
+    
     struct ui_handler_ops ops;
-
+    
     struct ui_handler *p_next;
 };
 
@@ -37,9 +37,9 @@ struct ui_handler {
     static struct ui_handler handler##_handler = { \
         .name = #handler, \
         .ops = { \
-            .init = handler##_init, \
-            .exit = handler##_exit, \
-            .update = handler##_update, \
+                .init = handler##_init, \
+                .exit = handler##_exit, \
+                .update = handler##_update, \
         }, \
     }; \
     static void __attribute__((constructor)) handler##_register(void) \
@@ -47,9 +47,9 @@ struct ui_handler {
         register_handler(&handler##_handler); \
     }
 
-int register_handler(struct ui_handler *handler);
-void ui_handlers_init(void);
-void ui_handlers_exit(void);
+int register_handler( struct ui_handler *handler );
+void ui_handlers_init( void );
+void ui_handlers_exit( void );
 
 #ifdef __cplusplus
 } /*extern "C"*/

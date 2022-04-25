@@ -40,14 +40,14 @@ extern "C" {
 #ifndef container_of
 /**
  * container_of - cast a member of a structure out to the containing structure
- * @ptr:	the pointer to the member.
- * @type:	the type of the container struct this is embedded in.
- * @member:	the name of the member within the struct.
+ * @ptr:    the pointer to the member.
+ * @type:   the type of the container struct this is embedded in.
+ * @member: the name of the member within the struct.
  *
  */
-#define container_of(ptr, type, member) ({			\
-	const typeof(((type *)0)->member) * __mptr = (ptr);	\
-	(type *)((char *)__mptr - offsetof(type, member)); })
+#define container_of(ptr, type, member) ({          \
+        const typeof(((type *)0)->member) * __mptr = (ptr); \
+        (type *)((char *)__mptr - offsetof(type, member)); })
 #endif
 
 #define MULTI_KEY_DETECT(state, key1, key2) (state == (key1 | key2))
@@ -57,18 +57,18 @@ extern "C" {
  **********************/
 struct joypad_data {
     int joypad_fd;
-
+    
     uint16_t buttons_state;
     uint16_t axis_state;
     uint32_t combined_state;
-
+    
     struct js_event jsevent;
 };
 
 struct joypad_operations {
-    int (*init)(struct joypad_data *pdev);
-    int (*exit)(struct joypad_data *pdev);
-    unsigned int (*get_event)(struct joypad_data *pdev);
+    int ( *init )( struct joypad_data *pdev );
+    int ( *exit )( struct joypad_data *pdev );
+    unsigned int ( *get_event )( struct joypad_data *pdev );
 };
 
 
@@ -77,23 +77,23 @@ struct joypad_device {
     char *name;
     uint8_t type;
     pthread_t tid;
-
+    
     struct joypad_data data;
     struct joypad_operations ops;
-
+    
     struct joypad_device *p_next;
 };
 
 struct joypad_key {
-    uint8_t num:7;
-    uint8_t state:1;
+    uint8_t num: 7;
+    uint8_t state: 1;
 };
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-int joypad_input_init(void);
-int joypad_input_exit(void);
-struct joypad_data joypad_input_get_data(void);
+int joypad_input_init( void );
+int joypad_input_exit( void );
+struct joypad_data joypad_input_get_data( void );
 
 /**********************
  * GLOBAL VALUES
@@ -111,10 +111,10 @@ enum {
 };
 
 enum {
-    AXIS_KEY_RIGHT = BIT(0),
-    AXIS_KEY_DOWN  = BIT(1),
-    AXIS_KEY_LEFT  = BIT(2),
-    AXIS_KEY_TOP   = BIT(3),
+    AXIS_KEY_RIGHT = BIT( 0 ),
+    AXIS_KEY_DOWN  = BIT( 1 ),
+    AXIS_KEY_LEFT  = BIT( 2 ),
+    AXIS_KEY_TOP   = BIT( 3 ),
 };
 
 /**********************

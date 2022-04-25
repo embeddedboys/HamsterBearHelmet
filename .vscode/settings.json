@@ -18,7 +18,7 @@
         "--indent-col1-comments",
         "--min-conditional-indent=0",
         "--max-continuation-indent=120",
-        "--break-blocks",
+        // "--break-blocks",
 
         "--fill-empty-lines",
         "--align-pointer=name",
