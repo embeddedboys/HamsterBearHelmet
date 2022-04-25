@@ -8,6 +8,5 @@
     "astyle.cmd_options": [
         "--style=linux",
         "--indent=spaces=4",
-        "--indent-switches",
     ]
 }

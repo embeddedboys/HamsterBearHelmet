@@ -56,37 +56,37 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 struct joypad_data {
-	int joypad_fd;
+    int joypad_fd;
 
-	uint16_t buttons_state;
-	uint16_t axis_state;
-	uint32_t combined_state;
-	
-	struct js_event jsevent;
+    uint16_t buttons_state;
+    uint16_t axis_state;
+    uint32_t combined_state;
+
+    struct js_event jsevent;
 };
 
 struct joypad_operations {
-	int (*init)(struct joypad_data *pdev);
-	int (*exit)(struct joypad_data *pdev);
-	unsigned int (*get_event)(struct joypad_data *pdev);
+    int (*init)(struct joypad_data *pdev);
+    int (*exit)(struct joypad_data *pdev);
+    unsigned int (*get_event)(struct joypad_data *pdev);
 };
 
 
 struct joypad_device {
-	uint8_t number;
+    uint8_t number;
     char *name;
-	uint8_t type;
-	pthread_t tid;
+    uint8_t type;
+    pthread_t tid;
 
-	struct joypad_data data;
-	struct joypad_operations ops;
+    struct joypad_data data;
+    struct joypad_operations ops;
 
-	struct joypad_device *p_next;
+    struct joypad_device *p_next;
 };
 
-struct joypad_key{
-	uint8_t num:7;
-	uint8_t state:1;
+struct joypad_key {
+    uint8_t num:7;
+    uint8_t state:1;
 };
 /**********************
  * GLOBAL PROTOTYPES
