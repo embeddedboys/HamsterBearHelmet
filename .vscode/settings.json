@@ -8,5 +8,28 @@
     "astyle.cmd_options": [
         "--style=linux",
         "--indent=spaces=4",
+        "-n",
+        "--indent=spaces=4",
+        "--indent-cases",
+        "--indent-continuation=3",
+        "--indent-labels",
+        "--indent-preproc-block",
+        "--indent-preproc-define",
+        "--indent-col1-comments",
+        "--min-conditional-indent=0",
+        "--max-continuation-indent=120",
+        "--break-blocks",
+
+        "--fill-empty-lines",
+        "--align-pointer=name",
+        "--break-closing-braces",
+        "--add-braces",
+        "--convert-tabs",
+        "--suffix=none",
+        "--pad-oper",
+        "--pad-comma",
+        "--pad-paren-in",
+        "--unpad-paren",
+        "--max-code-length=80",
     ]
 }
