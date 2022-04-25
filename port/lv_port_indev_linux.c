@@ -189,10 +189,10 @@ void lv_port_indev_init(void)
 
     /*Assign buttons to points on the screen*/
     static const lv_point_t btn_points[4] = {
-        {105, 192},   /*Button 0 -> x:10; y:10*/
-        {175, 190},  /*Button 1 -> x:40; y:100*/
+        {102, 215},   /* Button 0 -> x:102; y:215 */
+        {180, 216},   /* Button 1 -> x:180; y:216 */
         {140, 120},
-        {20, 220},
+        {142, 215},
     };
     lv_indev_set_button_points(indev_button, btn_points);
 }
