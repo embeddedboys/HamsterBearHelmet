@@ -21,7 +21,9 @@ set(WARINGS "-Wall -Wextra \
                                           -Wreturn-type -Wmultichar -Wformat-security -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated  \
                                                 -Wempty-body -Wshift-negative-value -Wstack-usage=2048 \
             -Wtype-limits -Wsizeof-pointer-memaccess -Wpointer-arith")
-SET(CMAKE_C_FLAGS_RELEASE "-static -O3 ${WARINGS}")
+SET(CMAKE_C_FLAGS_RELEASE " -O3 ${WARINGS}")
+SET(CMAKE_C_FLAGS_DEBUG "-static -O3 -g ${WARINGS}")
+
 # SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/)
 
 link_libraries(pthread)

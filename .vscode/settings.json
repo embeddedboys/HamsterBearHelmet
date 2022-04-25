@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "ui_handlers.h": "c"
+    },
+    "astyle.cmd_options": [
+        "--style=linux",
+        "--indent=spaces=4",
+        "--indent-switches",
+    ]
+}

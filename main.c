@@ -78,8 +78,7 @@
 
 
 /* Input device */
-typedef struct
-{
+typedef struct {
     /*  */
     int tp_fd;
 
@@ -161,8 +160,7 @@ void my_touchpad_init(void)
 #endif
 
 
-    if(indev_info.tp_fd < 0)    /* Returns -1 on error */
-    {
+    if(indev_info.tp_fd < 0) {  /* Returns -1 on error */
         handle_error("can not open indev");
     }
 
@@ -190,9 +188,9 @@ void my_toupad_default_handler(lv_task_t *task)
     while(read(indev_info.tp_fd, &indev_info.indev_event,
                sizeof(struct input_event)) > 0)
 #else
-	if(read(indev_info.tp_fd, &indev_info.indev_event,
-				   sizeof(struct input_event)) > 0)
-#endif			
+    if(read(indev_info.tp_fd, &indev_info.indev_event,
+            sizeof(struct input_event)) > 0)
+#endif
 
     {
         my_touchpad_probe_event();
@@ -209,7 +207,7 @@ void my_toupad_default_handler(lv_task_t *task)
 void my_touchpad_sig_handler(int signal)
 {
     while(read(indev_info.tp_fd, &indev_info.indev_event,
-            sizeof(struct input_event)) > 0)
+               sizeof(struct input_event)) > 0)
         my_touchpad_probe_event();
 }
 #endif  /* my_touchpad_sig_handler */
@@ -226,21 +224,15 @@ void my_touchpad_poll_handler(lv_task_t *task)
     (void)task;
     int len;
     len = poll(indev_info.mpollfd, indev_info.nfds, INPUT_SAMEPLING_TIME);
-    if(len > 0)         /* There is data to read */
-    {
+    if(len > 0) {       /* There is data to read */
         if(read(indev_info.tp_fd, &indev_info.indev_event,
-                sizeof(indev_info.indev_event)) > 0)
-        {
+                sizeof(indev_info.indev_event)) > 0) {
             my_touchpad_probe_event();
         }
 
-    }
-    else if(len == 0)     /* Time out */
-    {
+    } else if(len == 0) { /* Time out */
         /* Do nothing */
-    }
-    else     /* Error */
-    {
+    } else { /* Error */
         handle_error("poll error!");
     }
 touchdown_err:      /* Do nothing. Just return and ready for next event come. */
@@ -252,32 +244,23 @@ touchdown_err:      /* Do nothing. Just return and ready for next event come. */
 void my_touchpad_probe_event(void)
 {
 
-    switch(indev_info.indev_event.type)
-    {
+    switch(indev_info.indev_event.type) {
         case EV_KEY:    /* Key event. Provide the pressure data of touchscreen*/
-            if(indev_info.indev_event.code == BTN_TOUCH)          /* Screen touch event */
-            {
-                if(1 == indev_info.indev_event.value)         /* Touch down */
-                {
+            if(indev_info.indev_event.code == BTN_TOUCH) {        /* Screen touch event */
+                if(1 == indev_info.indev_event.value) {       /* Touch down */
                     indev_info.touchdown = true;
-                }
-                else if(0 == indev_info.indev_event.value)     /* Touch up */
-                {
+                } else if(0 == indev_info.indev_event.value) { /* Touch up */
                     indev_info.touchdown = false;
-                }
-                else                            /* Unexcepted data */
-                {
+                } else {                        /* Unexcepted data */
                     goto touchdown_err;
                 }
             }
             break;
         case EV_ABS:    /* Abs event. Provide the position data of touchscreen*/
-            if(indev_info.indev_event.code == ABS_MT_POSITION_X)
-            {
+            if(indev_info.indev_event.code == ABS_MT_POSITION_X) {
                 indev_info.last_x = indev_info.indev_event.value;
             }
-            if(indev_info.indev_event.code == ABS_MT_POSITION_Y)
-            {
+            if(indev_info.indev_event.code == ABS_MT_POSITION_Y) {
                 indev_info.last_y = indev_info.indev_event.value;
             }
             break;
@@ -300,8 +283,7 @@ bool my_touchpad_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 {
     /* store the collected data */
     data->state = indev_info.touchdown ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-    if(data->state == LV_INDEV_STATE_PR)
-    {
+    if(data->state == LV_INDEV_STATE_PR) {
         data->point.x = indev_info.last_x;
         data->point.y = indev_info.last_y;
     }
@@ -312,29 +294,28 @@ bool my_touchpad_read(lv_indev_drv_t *indev, lv_indev_data_t *data)
 int main(void)
 {
     lv_init();
-	lv_port_disp_init();
-	lv_port_indev_init();
+    lv_port_disp_init();
+    lv_port_indev_init();
 
-/*    
-    lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = my_touchpad_read;
-    lv_indev_drv_register(&indev_drv);
-#if (INPUT_READ_MODE==2)
-    lv_task_create(my_touchpad_poll_handler, 1, LV_TASK_PRIO_HIGH, NULL);
-#elif (INPUT_READ_MODE==0 || INPUT_READ_MODE==1)
-    lv_task_create(my_toupad_default_handler, 1, LV_TASK_PRIO_HIGHEST, NULL);
-#endif
-*/
+    /*
+        lv_indev_drv_t indev_drv;
+        lv_indev_drv_init(&indev_drv);
+        indev_drv.type = LV_INDEV_TYPE_POINTER;
+        indev_drv.read_cb = my_touchpad_read;
+        lv_indev_drv_register(&indev_drv);
+    #if (INPUT_READ_MODE==2)
+        lv_task_create(my_touchpad_poll_handler, 1, LV_TASK_PRIO_HIGH, NULL);
+    #elif (INPUT_READ_MODE==0 || INPUT_READ_MODE==1)
+        lv_task_create(my_toupad_default_handler, 1, LV_TASK_PRIO_HIGHEST, NULL);
+    #endif
+    */
     /* App here */
     printf("Launching Desktop...\n");
     ui_init();
-    ui_statusbar_init();
-    ui_charts_init();
-    
-    while(1)
-    {
+
+    ui_handlers_init();
+
+    while(1) {
         lv_task_handler();
         usleep(SYSTEM_RESPONSE_TIME * 1000);
         lv_tick_inc(SYSTEM_RESPONSE_TIME);
