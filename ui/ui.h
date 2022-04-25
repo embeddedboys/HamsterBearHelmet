@@ -83,6 +83,7 @@ LV_IMG_DECLARE(ui_img_power_png);    // assets\power.png
 LV_IMG_DECLARE(ui_img_line_png);    // assets\line.png
 LV_IMG_DECLARE(ui_img_1840458530);    // assets\chevron-down.png
 LV_IMG_DECLARE(ui_img_wlan_big2_png);    // assets\WLAN_big2.png
+LV_IMG_DECLARE(ui_img_wifi_png);    // assets\wifi.png
 
 
 LV_FONT_DECLARE(ui_font_NeverMindDemiBold);

@@ -218,6 +218,9 @@ static void ui_event_ButtonWLANSwitch(lv_event_t * e)
     lv_obj_t * ta = lv_event_get_target(e);
     if(event == LV_EVENT_CLICKED) {
         _ui_slider_set_property(ui_SliderWLAN, _UI_SLIDER_PROPERTY_VALUE_WITH_ANIM, 1);
+        _ui_image_set_property(ui_ImageWifi2, _UI_IMAGE_PROPERTY_IMAGE, & ui_img_wifi_png);
+        _ui_image_set_property(ui_ImageWifi1, _UI_IMAGE_PROPERTY_IMAGE, & ui_img_wifi_png);
+        _ui_image_set_property(ui_ImageWifi, _UI_IMAGE_PROPERTY_IMAGE, & ui_img_wifi_png);
     }
 }
 
