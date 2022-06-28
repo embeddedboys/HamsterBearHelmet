@@ -13,6 +13,10 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
 file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" "input/*.h")
 file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" "port/*.c" "input/*.c")
+
+# here to include native or port file
+
+
 set(CMAKE_BUILD_TYPE "Release")
 set(WARINGS "-Wall -Wextra \
                                                 -Wshadow -Wundef -Wmaybe-uninitialized -Wmissing-prototypes -Wno-discarded-qualifiers \
