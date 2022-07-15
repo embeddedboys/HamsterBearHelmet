@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(my_lvgl)
+project(HamsterBearHelmet)
 
 #set(CMAKE_C_STANDARD 11)
 SET(CROSS_COMPILE 1)
@@ -12,7 +12,7 @@ set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
 file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" "input/*.h")
-file(GLOB_RECURSE SOURCES  "lvgl/*.c" "ui/*.c" "port/*.c" "input/*.c")
+file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "port/*.c" "input/*.c")
 
 # here to include native or port file
 
