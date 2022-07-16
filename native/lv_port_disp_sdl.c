@@ -78,8 +78,8 @@ void lv_port_disp_init(void)
 
     /* Example for 1) */
     static lv_disp_draw_buf_t draw_buf_dsc_1;
-    static lv_color_t buf_1[800 * 10];                          /*A buffer for 10 rows*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, 800 * 10);   /*Initialize the display buffer*/
+    static lv_color_t buf_1[280 * 10];                          /*A buffer for 10 rows*/
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, 280 * 10);   /*Initialize the display buffer*/
 
     /* Example for 2) */
     //static lv_disp_draw_buf_t draw_buf_dsc_2;
@@ -104,8 +104,8 @@ void lv_port_disp_init(void)
     /*Set up the functions to access to your display*/
 
     /*Set the resolution of the display*/
-    disp_drv.hor_res = 800;
-    disp_drv.ver_res = 480;
+    disp_drv.hor_res = 280;
+    disp_drv.ver_res = 240;
 
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = disp_flush;
@@ -133,11 +133,11 @@ void lv_port_disp_init(void)
 static void disp_init(void)
 {
     /*You code here*/
-	printf("%s, sdl disp init", __FILE__);
+	printf("%s, sdl disp init\n", __FILE__);
 	SDL_Init(SDL_INIT_VIDEO);
 
 	window = SDL_CreateWindow("lvgl SDL2", SDL_WINDOWPOS_CENTERED,
-				SDL_WINDOWPOS_CENTERED, 800, 480, 0);
+				SDL_WINDOWPOS_CENTERED, 280, 240, 0);
 
 	renderer = SDL_CreateRenderer(window, -1, 0);
 }
@@ -154,7 +154,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     for(y = area->y1; y <= area->y2; y++) {
         for(x = area->x1; x <= area->x2; x++) {
             /*Put a pixel to the display. For example:*/
-            /*put_px(x, y, *color_p)*/
+            disp_sdl_draw_point(renderer, x, y, color_p->full);
             color_p++;
         }
     }
@@ -184,8 +184,8 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 
 static void disp_sdl_draw_point(SDL_Renderer *renderer, uint32_t x, uint32_t y, uint32_t color)
 {
-	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-	SDL_RendererDrawPoint(renderer, 10, 10);
+	SDL_SetRenderDrawColor(renderer, (color>>11)&0x1f, (color>>5)&0x3f, color & 0x1f, 255);
+	SDL_RenderDrawPoint(renderer, x, y);
 
 	SDL_RenderPresent(renderer);
 }
