@@ -6,13 +6,26 @@ SET(CROSS_COMPILE 1)
 set(CMAKE_SYSTEM_NAME Linux)
 
 # set(CMAKE_C_COMPILER "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
-set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
 # SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
 file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" "input/*.h")
 file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "port/*.c" "input/*.c")
+
+option(BUILD_FOR_TARGET "Compile this program for target system" ON)
+
+configure_file (
+	"${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
+	"${CMAKE_CURRENT_SOURCE_DIR}/config.h"
+)
+
+if(BUILD_FOR_TARGET)
+	set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
+	add_subdirectory(port)
+else()
+	add_subdirectory(native)
+endif()
 
 # here to include native or port file
 
