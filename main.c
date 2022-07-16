@@ -20,6 +20,7 @@
 	#include "port/lv_port_disp_linux.h"
 	#include "port/lv_port_indev_linux.h"
 #else
+	#warning "Build for native system"
 	#include "native/lv_port_disp_sdl.h"
 #endif
 

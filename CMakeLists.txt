@@ -10,8 +10,8 @@ set(CMAKE_SYSTEM_NAME Linux)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
-file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "port/*.h" "input/*.h")
-file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "port/*.c" "input/*.c")
+file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "input/*.h")
+file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "input/*.c")
 
 option(BUILD_FOR_TARGET "Compile this program for target system" ON)
 
@@ -21,10 +21,15 @@ configure_file (
 )
 
 if(BUILD_FOR_TARGET)
+	message("set cross compile toochain")
 	set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
-	add_subdirectory(port)
+	message("add subdir port")
 else()
-	add_subdirectory(native)
+	message("add subdir native")
+	include_directories("/usr/include/SDL2")
+	link_libraries(SDL2)
+	set(EXT_INCLUDES "native/lv_port_disp_sdl.h")
+	set(EXT_SOURCES  "native/lv_port_disp_sdl.c")
 endif()
 
 # here to include native or port file
@@ -45,5 +50,5 @@ SET(CMAKE_C_FLAGS_DEBUG "-static -O3 -g ${WARINGS}")
 
 link_libraries(pthread)
 
-add_executable(demo main.c ${SOURCES} ${INCLUDES})
+add_executable(demo main.c ${SOURCES} ${INCLUDES} ${EXT_SOURCES} ${EXT_INCLUDES})
 
