@@ -13,8 +13,15 @@
 #include <linux/input.h>
 
 #include "lvgl/lvgl.h"
-#include "port/lv_port_disp_linux.h"
-#include "port/lv_port_indev_linux.h"
+
+#include "config.h"
+#ifdef BUILD_FOR_TARGET
+	#warning "Build for target system"
+	#include "port/lv_port_disp_linux.h"
+	#include "port/lv_port_indev_linux.h"
+#else
+	#include "native/lv_port_disp_sdl.h"
+#endif
 
 #include "ui/ui.h"
 #include "ui/ui_handlers/ui_handlers.h"
