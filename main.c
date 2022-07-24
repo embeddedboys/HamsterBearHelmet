@@ -16,12 +16,12 @@
 
 #include "config.h"
 #ifdef BUILD_FOR_TARGET
-	#warning "Build for target system"
-	#include "port/lv_port_disp_linux.h"
-	#include "port/lv_port_indev_linux.h"
+    #warning "Build for target system"
+    #include "port/lv_port_disp_linux.h"
+    #include "port/lv_port_indev_linux.h"
 #else
-	#warning "Build for native system"
-	#include "native/lv_port_disp_sdl.h"
+    #warning "Build for native system"
+    #include "native/lv_port_disp_sdl.h"
 #endif
 
 #include "ui/ui.h"
@@ -308,9 +308,13 @@ bool my_touchpad_read( lv_indev_drv_t *indev, lv_indev_data_t *data )
 /* main thread of lvgl */
 int main( void )
 {
+#ifndef BUILD_FOR_TARGET
+    SDL_Event event;
+#endif
+    
     lv_init();
     lv_port_disp_init();
-    lv_port_indev_init();
+    //lv_port_indev_init();
     
     /*
         lv_indev_drv_t indev_drv;
@@ -334,6 +338,21 @@ int main( void )
         lv_task_handler();
         usleep( SYSTEM_RESPONSE_TIME * 1000 );
         lv_tick_inc( SYSTEM_RESPONSE_TIME );
+
+#ifndef BUILD_FOR_TARGET
+        SDL_PollEvent( &event );
+        switch( event.type ) {
+        case SDL_QUIT:
+            exit( 1 );
+            break;
+        case SDL_KEYDOWN:
+            if( event.key.keysym.sym == SDLK_ESCAPE )
+                exit( 1 );
+            break;
+        default:
+            break;
+        }
+#endif
     }
     return 0;
 }

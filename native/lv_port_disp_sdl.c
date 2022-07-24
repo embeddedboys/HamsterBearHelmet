@@ -11,7 +11,6 @@
  *********************/
 #include "lv_port_disp_sdl.h"
 #include "../lvgl/lvgl.h"
-#include "SDL.h"
 
 /*********************
  *      DEFINES
@@ -36,6 +35,7 @@ static void disp_sdl_draw_point(SDL_Renderer *renderer, uint32_t x, uint32_t y, 
 static SDL_Window *window;
 static SDL_bool done = SDL_FALSE;
 static SDL_Renderer *renderer;
+static SDL_Texture *texture;
 /**********************
  *      MACROS
  **********************/
@@ -140,6 +140,8 @@ static void disp_init(void)
 				SDL_WINDOWPOS_CENTERED, 280, 240, 0);
 
 	renderer = SDL_CreateRenderer(window, -1, 0);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 280, 240);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 }
 
 /*Flush the content of the internal buffer the specific area on the display
@@ -185,7 +187,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 
 static void disp_sdl_draw_point(SDL_Renderer *renderer, uint32_t x, uint32_t y, uint32_t color)
 {
-	SDL_SetRenderDrawColor(renderer, (color>>11)&0x1f, (color>>5)&0x3f, color & 0x1f, 255);
+	SDL_SetRenderDrawColor(renderer, (color>>11)&0x1f, (color>>5)&0x3f, color & 0x1f, SDL_ALPHA_OPAQUE);
 	SDL_RenderDrawPoint(renderer, x, y);
 }
 
