@@ -137,11 +137,12 @@ static void disp_init(void)
 	SDL_Init(SDL_INIT_VIDEO);
 
 	window = SDL_CreateWindow("lvgl SDL2", SDL_WINDOWPOS_CENTERED,
-				SDL_WINDOWPOS_CENTERED, 280, 240, 0);
+				                SDL_WINDOWPOS_CENTERED, 280, 240, 
+                                SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 	renderer = SDL_CreateRenderer(window, -1, 0);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 280, 240);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, 
+                                SDL_TEXTUREACCESS_TARGET, 280, 240);
 }
 
 /*Flush the content of the internal buffer the specific area on the display
@@ -153,6 +154,9 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 
     int32_t x;
     int32_t y;
+
+    SDL_SetRenderTarget(renderer, texture);
+
     for(y = area->y1; y <= area->y2; y++) {
         for(x = area->x1; x <= area->x2; x++) {
             /*Put a pixel to the display. For example:*/
@@ -160,6 +164,10 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
             color_p++;
         }
     }
+
+    SDL_SetRenderTarget(renderer, NULL);
+
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 
     /*IMPORTANT!!!
