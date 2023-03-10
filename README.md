@@ -1,8 +1,11 @@
-<h1 align="center"> HEY </h1>
+<h1 align="center"> Sorry </h1>
 
-<h3 align="center">The squareline studio project of this application was lost, so archive this project temporarily. sorry.</h3>
+<h3 align="center">The squareline studio project of this application was lost, so archive this project temporarily.</h3>
 
 # HamsterBearHelmet
+
+![preview](assets/screenshot-20230310-110416.png)
+
 HamsterBearHelmet is a desktop application for hamsterbear which based on LVGL
 It designed to run on target system, also makeing a way to run on host system.
 

@@ -10,8 +10,8 @@ set(CMAKE_SYSTEM_NAME Linux)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
-file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "input/*.h")
-file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "input/*.c")
+file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "input/*.h" "lv_driver/sdl/*.h")
+file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "input/*.c" "lv_drivers/sdl/*.c")
 
 option(BUILD_FOR_TARGET "Compile this program for target system" ON)
 

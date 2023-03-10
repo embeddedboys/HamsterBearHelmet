@@ -9,8 +9,12 @@
 /*********************
  *      INCLUDES
  *********************/
+#include <SDL2/SDL.h>
+#include "lv_drivers/sdl/sdl.h"
+
 #include "lv_port_disp_sdl.h"
 #include "../lvgl/lvgl.h"
+
 
 /*********************
  *      DEFINES
@@ -46,83 +50,65 @@ static SDL_Texture *texture;
 
 void lv_port_disp_init(void)
 {
-    /*-------------------------
-     * Initialize your display
-     * -----------------------*/
-    disp_init();
+    /* Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
+    sdl_init();
 
-    /*-----------------------------
-     * Create a buffer for drawing
-     *----------------------------*/
+    /*Create a display buffer*/
+    static lv_disp_draw_buf_t disp_buf1;
+    static lv_color_t buf1_1[SDL_HOR_RES * SDL_VER_RES];
+    static lv_color_t buf1_2[SDL_HOR_RES * SDL_VER_RES];
+    lv_disp_draw_buf_init(&disp_buf1, buf1_1, buf1_2, SDL_HOR_RES * SDL_VER_RES);
 
-    /**
-     * LVGL requires a buffer where it internally draws the widgets.
-     * Later this buffer will passed to your display driver's `flush_cb` to copy its content to your display.
-     * The buffer has to be greater than 1 display row
-     *
-     * There are 3 buffering configurations:
-     * 1. Create ONE buffer:
-     *      LVGL will draw the display's content here and writes it to your display
-     *
-     * 2. Create TWO buffer:
-     *      LVGL will draw the display's content to a buffer and writes it your display.
-     *      You should use DMA to write the buffer's content to the display.
-     *      It will enable LVGL to draw the next part of the screen to the other buffer while
-     *      the data is being sent form the first buffer. It makes rendering and flushing parallel.
-     *
-     * 3. Double buffering
-     *      Set 2 screens sized buffers and set disp_drv.full_refresh = 1.
-     *      This way LVGL will always provide the whole rendered screen in `flush_cb`
-     *      and you only need to change the frame buffer's address.
-     */
-
-    /* Example for 1) */
-    //static lv_disp_draw_buf_t draw_buf_dsc_1;
-    //static lv_color_t buf_1[280 * 10];                          /*A buffer for 10 rows*/
-    //lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, 280 * 10);   /*Initialize the display buffer*/
-
-    /* Example for 2) */
-    //static lv_disp_draw_buf_t draw_buf_dsc_2;
-    //static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*A buffer for 10 rows*/
-    //static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10];                        /*An other buffer for 10 rows*/
-    //lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
-
-    /* Example for 3) also set disp_drv.full_refresh = 1 below*/
-    static lv_disp_draw_buf_t draw_buf_dsc_3;
-    static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*A screen sized buffer*/
-    static lv_color_t buf_3_2[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*Another screen sized buffer*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_3, buf_3_1, buf_3_2,
-                          MY_DISP_VER_RES * LV_VER_RES_MAX);   /*Initialize the display buffer*/
-
-    /*-----------------------------------
-     * Register the display in LVGL
-     *----------------------------------*/
-
-    static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
-    lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
-
-    /*Set up the functions to access to your display*/
-
-    /*Set the resolution of the display*/
-    disp_drv.hor_res = 280;
-    disp_drv.ver_res = 240;
-
-    /*Used to copy the buffer's content to the display*/
-    disp_drv.flush_cb = disp_flush;
-
-    /*Set a display buffer*/
-    disp_drv.draw_buf = &draw_buf_dsc_3;
-
-    /*Required for Example 3)*/
+    /*Create a display*/
+    static lv_disp_drv_t disp_drv;
+    lv_disp_drv_init(&disp_drv); /*Basic initialization*/
+    disp_drv.draw_buf = &disp_buf1;
+    disp_drv.flush_cb = sdl_display_flush;
+    disp_drv.hor_res = SDL_HOR_RES;
+    disp_drv.ver_res = SDL_VER_RES;
     disp_drv.full_refresh = 1;
 
-    /* Fill a memory array with a color if you have GPU.
-     * Note that, in lv_conf.h you can enable GPUs that has built-in support in LVGL.
-     * But if you have a different GPU you can use with this callback.*/
-    //disp_drv.gpu_fill_cb = gpu_fill;
+    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
-    /*Finally register the driver*/
-    lv_disp_drv_register(&disp_drv);
+    // lv_theme_t * th = lv_theme_default_init(disp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
+    // lv_disp_set_theme(disp, th);
+    // lv_theme_t *th = lv_theme_mono_init(disp, 0, &lv_font_montserrat_14);
+    // lv_disp_set_theme(disp, th);
+
+    lv_group_t *g = lv_group_create();
+    lv_group_set_default(g);
+
+    /* Add the mouse as input device
+     * Use the 'mouse' driver which reads the PC's mouse*/
+    static lv_indev_drv_t indev_drv_1;
+    lv_indev_drv_init(&indev_drv_1); /*Basic initialization*/
+    indev_drv_1.type = LV_INDEV_TYPE_POINTER;
+
+    /*This function will be called periodically (by the library) to get the mouse position and state*/
+    indev_drv_1.read_cb = sdl_mouse_read;
+    lv_indev_t *mouse_indev = lv_indev_drv_register(&indev_drv_1);
+
+    static lv_indev_drv_t indev_drv_2;
+    lv_indev_drv_init(&indev_drv_2); /*Basic initialization*/
+    indev_drv_2.type = LV_INDEV_TYPE_KEYPAD;
+    indev_drv_2.read_cb = sdl_keyboard_read;
+    lv_indev_t *kb_indev = lv_indev_drv_register(&indev_drv_2);
+    lv_indev_set_group(kb_indev, g);
+
+    static lv_indev_drv_t indev_drv_3;
+    lv_indev_drv_init(&indev_drv_3); /*Basic initialization*/
+    indev_drv_3.type = LV_INDEV_TYPE_ENCODER;
+    indev_drv_3.read_cb = sdl_mousewheel_read;
+    lv_indev_t *enc_indev = lv_indev_drv_register(&indev_drv_3);
+    lv_indev_set_group(enc_indev, g);
+
+    /*Set a cursor for the mouse*/
+    // LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
+    // lv_obj_t *cursor_obj = lv_img_create(
+    //                                    lv_scr_act());  /*Create an image object for the cursor */
+    // lv_img_set_src(cursor_obj, &mouse_cursor_icon);           /*Set the image source*/
+    // lv_indev_set_cursor(mouse_indev,
+    //                     cursor_obj);             /*Connect the image  object to the driver*/
 }
 
 /**********************
@@ -130,6 +116,7 @@ void lv_port_disp_init(void)
  **********************/
 
 /*Initialize your display and the required peripherals.*/
+#if 0
 static void disp_init(void)
 {
     /*You code here*/
@@ -144,6 +131,13 @@ static void disp_init(void)
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, 
                                 SDL_TEXTUREACCESS_TARGET, 280, 240);
 }
+#else
+static void disp_init(void)
+{
+    /*You code here*/
+    sdl_init();
+}
+#endif
 
 /*Flush the content of the internal buffer the specific area on the display
  *You can use DMA or any hardware acceleration to do this operation in the background but

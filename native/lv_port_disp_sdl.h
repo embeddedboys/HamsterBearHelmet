@@ -17,7 +17,6 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "../lvgl/lvgl.h"
-#include "SDL.h"
 
 /*********************
  *      DEFINES
