@@ -5,13 +5,13 @@ project(HamsterBearHelmet)
 SET(CROSS_COMPILE 1)
 set(CMAKE_SYSTEM_NAME Linux)
 
-# set(CMAKE_C_COMPILER "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/arm-buildroot-linux-gnueabi-gcc")
-# SET(TOOLCHAIN_DIR "/home/main/HamsterBear/software/bsp/buildroot-2022.02/output/host/bin/")
+# set(CMAKE_C_COMPILER "/opt/arm-buildroot-linux-musleabi_sdk-buildroot/bin/arm-buildroot-linux-musleabi-gcc")
+# SET(TOOLCHAIN_DIR "/opt/arm-buildroot-linux-musleabi_sdk-buildroot/")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 include_directories(./)
 file(GLOB_RECURSE INCLUDES "lvgl/*.h"  "./*.h" "ui/*.h" "input/*.h" "lv_driver/sdl/*.h")
-file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "ui/*.c" "input/*.c" "lv_drivers/sdl/*.c")
+file(GLOB_RECURSE SOURCES  "lvgl/src/*.c" "lvgl/demos/stress/*.c" "ui/*.c" "input/*.c" "lv_drivers/sdl/*.c")
 
 option(BUILD_FOR_TARGET "Compile this program for target system" ON)
 
@@ -22,8 +22,11 @@ configure_file (
 
 if(BUILD_FOR_TARGET)
 	message("set cross compile toochain")
-	set(CMAKE_C_COMPILER "arm-linux-gnueabi-gcc")
+	set(CMAKE_C_COMPILER "/opt/arm-buildroot-linux-musleabi_sdk-buildroot/bin/arm-buildroot-linux-musleabi-gcc")
 	message("add subdir port")
+	set(EXT_INCLUDES "port")
+	set(EXT_SOURCES "port/lv_port_disp_linux.c"
+					"port/lv_port_indev_linux.c" )
 else()
 	message("add subdir native")
 	include_directories("/usr/include/SDL2")

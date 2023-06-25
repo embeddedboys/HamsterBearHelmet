@@ -1,1 +1,1 @@
-/* #undef BUILD_FOR_TARGET */
+#define BUILD_FOR_TARGET

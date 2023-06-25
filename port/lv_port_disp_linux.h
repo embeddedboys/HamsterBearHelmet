@@ -22,8 +22,8 @@ extern "C" {
  *      DEFINES
  *********************/
 #define DEFAULT_LINUX_FB_PATH "/dev/fb0"
-#define MY_DISP_HOR_RES (280)
-#define MY_DISP_VER_RES (240)
+#define MY_DISP_HOR_RES (128)
+#define MY_DISP_VER_RES (128)
 /* error handler */
 #define handle_error(msg) do {perror(msg);exit(-1);} \
     while(0)

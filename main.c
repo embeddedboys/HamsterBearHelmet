@@ -26,6 +26,8 @@
     #include <SDL2/SDL.h>
 #endif
 
+// #include "lvgl/demos/stress/lv_demo_stress.h"
+#include "lvgl/demos/benchmark/lv_demo_benchmark.h"
 #include "ui/ui.h"
 #include "ui/ui_handlers/ui_handlers.h"
 /*
@@ -329,17 +331,19 @@ int main( void )
     
     /* App here */
     printf( "Launching Desktop...\n" );
-    ui_init();
+    // ui_init();
+    // ifconfig usb0 192.168.100.100
+    // ifconfig 192.168.100.101
+    // mount -t nfs -o nolock,vers=3 192.168.100.101:/home/developer/nfs_share /mnt
+    lv_demo_stress();
+    // lv_demo_benchmark();
     
-    ui_handlers_init();
+    // ui_handlers_init();
 
-    // pthread_t tid;
-    // pthread_create(&tid, NULL, tick_thread, NULL);
+    pthread_t tid;
+    pthread_create(&tid, NULL, tick_thread, NULL);
 
-    while( 1 ) {
-        lv_timer_handler();
-        usleep(5 * 1000);
-    }
+    while (1);
 
     return 0;
 }
